@@ -1,16 +1,12 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.javaws.exceptions.InvalidArgumentException;
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.SingletonClient;
 import org.apache.usergrid.java.client.response.ApiResponse;
-//import org.apache.usergrid.java.client.model.EntityId;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.*;
 
@@ -104,7 +100,7 @@ public class UsergridGraph implements Graph {
     /**
      * Does the graph ignore user provided ids in graph.addVertex(Object id)?
      */
-    features.ignoresSuppliedIds = Boolean.FALSE;
+    features.ignoresSuppliedIds = Boolean.TRUE;
 
     /**
      * Does the graph persist the graph to disk after shutdown?

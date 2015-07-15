@@ -1,7 +1,5 @@
 package org.apache.usergrid.drivers.blueprints;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-import com.tinkerpop.blueprints.Direction;
 import org.apache.usergrid.java.client.response.ApiResponse;
 
 import java.io.IOException;

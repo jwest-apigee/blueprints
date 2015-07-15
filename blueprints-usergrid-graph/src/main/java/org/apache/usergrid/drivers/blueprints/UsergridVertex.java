@@ -1,7 +1,6 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -9,9 +8,6 @@ import com.tinkerpop.blueprints.VertexQuery;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.entities.Entity;
 import org.apache.usergrid.java.client.response.ApiResponse;
-import org.apache.usergrid.java.client.utils.JsonUtils;
-import org.springframework.http.HttpMethod;
-import org.apache.usergrid.java.client.*;
 
 
 import java.util.*;
