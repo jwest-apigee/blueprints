@@ -19,6 +19,7 @@ public class ValidationUtils {
   public static final String FORBIDDEN = "forbidden";
   public static final String SERVER_ERROR = "Server error or 500";
   public static final String INCORRECT_CONTENT = "Incorrect Content error 400 - Bad request";
+  public static final String ORG_APP_NOT_FOUND= "organization_application_not_found";
 
   public static void validateNotNull(Object o, Class<RuntimeException> exceptionClass, String message) {
     if (o == null) {
@@ -106,6 +107,26 @@ public class ValidationUtils {
     }
   }
 
+  public static void OrgAppNotFound(ApiResponse response, Class<RuntimeException> exceptionClass, String message) {
+    if (response.toString().contains(ORG_APP_NOT_FOUND)) {
+
+      try {
+        Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
+        RuntimeException e = c.newInstance(message);
+        throw e;
+      } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      } catch (InstantiationException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   public static void validateAccess(ApiResponse response, Class<RuntimeException> exceptionClass, String message){
     if (response.toString().contains(FORBIDDEN)){

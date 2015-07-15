@@ -11,7 +11,8 @@ import org.apache.usergrid.java.client.entities.Entity;
 import org.apache.usergrid.java.client.response.ApiResponse;
 import org.apache.usergrid.java.client.utils.JsonUtils;
 import org.springframework.http.HttpMethod;
-import org.apache.usergrid.java.client.*;
+import org.apache.usergrid.java.client.entities.*;
+
 
 
 import java.util.*;
