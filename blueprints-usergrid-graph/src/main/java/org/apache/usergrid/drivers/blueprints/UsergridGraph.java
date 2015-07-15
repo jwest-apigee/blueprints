@@ -327,10 +327,9 @@ return null;
      Object> params, Object data, String... segments) in org.apache.usergrid.java.client
      4) Return null if no vertex is referenced by the identifier
      */
-      if (id == null){
-          throw new IllegalArgumentException("Id cannot be null");
-      }
-      else if (id instanceof String) {
+      assertClientInitialized();
+      ValidationUtils.validateNotNull(id,RuntimeException.class,"id cannot be of type null");
+      if (id instanceof String) {
       return getVertexByString((String) id);
     } else {
       if (id instanceof EntityId) {
@@ -378,6 +377,7 @@ return null;
      4) Return null if no vertex is referenced by the identifier
      */
 
+      ValidationUtils.validateStringNotEmpty((String)id,RuntimeException.class,"id cannot be an empty string");
     String[] parts = id.split(COLON);
     String type = parts[0];
     String StringUUID = parts[1];
@@ -424,7 +424,7 @@ return null;
     String[] parts = id.split(COLON);
     String type = parts[0];
     String StringUUID = parts[1];
-    SingletonClient.getInstance().deleteEntity(type, StringUUID);
+    ApiResponse response = SingletonClient.getInstance().deleteEntity(type, StringUUID);
 
       ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
       ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
