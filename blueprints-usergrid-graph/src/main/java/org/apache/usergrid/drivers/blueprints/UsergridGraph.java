@@ -1,31 +1,30 @@
-    package org.apache.usergrid.drivers.blueprints;
 
-    import com.fasterxml.jackson.databind.JsonNode;
-    import com.sun.javaws.exceptions.InvalidArgumentException;
-    import com.sun.jdi.connect.IllegalConnectorArgumentsException;
-    import com.tinkerpop.blueprints.*;
-    import org.apache.commons.configuration.Configuration;
-    import org.apache.usergrid.java.client.Client;
-    import org.apache.usergrid.java.client.SingletonClient;
-    import org.apache.usergrid.java.client.response.ApiResponse;
-    import javax.swing.text.html.parser.Entity;
-    import java.io.IOException;
-    import java.util.*;
+package org.apache.usergrid.drivers.blueprints;
 
-    /**
-    * Created by ApigeeCorporation on 6/29/15.
-    */
+import com.fasterxml.jackson.databind.JsonNode;
+import com.tinkerpop.blueprints.*;
+import org.apache.commons.configuration.Configuration;
+import org.apache.usergrid.java.client.Client;
+import org.apache.usergrid.java.client.SingletonClient;
+import org.apache.usergrid.java.client.response.ApiResponse;
 
-    public class UsergridGraph implements Graph {
+import java.io.IOException;
+import java.util.*;
 
-    public static final String COLON = ":";
-    public static final String STRING_UUID = "uuid";
-    public static final String STRING_NAME = "name";
-    public static final String ARROW_CONNECTOR = "-->";
+/**
+ * Created by ApigeeCorporation on 6/29/15.
+ */
+public class UsergridGraph implements Graph {
 
-    private static Features features;
+  public static final String COLON = ":";
+  public static final String STRING_UUID = "uuid";
+  public static final String STRING_NAME = "name";
+  public static final String ARROW_CONNECTOR = "-->";
 
-    static {
+  private static Features features;
+
+  static {
+
     features = new Features();
     /**
     * Does the graph allow for two edges with the same vertices and edge label to exist?
@@ -100,9 +99,10 @@
     features.hasImplicitElements = Boolean.TRUE;
 
     /**
-    * Does the graph ignore user provided ids in graph.addVertex(Object id)?
-    */
-    features.ignoresSuppliedIds = Boolean.FALSE;
+
+     * Does the graph ignore user provided ids in graph.addVertex(Object id)?
+     */
+    features.ignoresSuppliedIds = Boolean.TRUE;
 
     /**
     * Does the graph persist the graph to disk after shutdown?
@@ -416,7 +416,7 @@
     ValidationUtils.validateNotNull(label,RuntimeException.class, "Label for the edge cannot be null");
     ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label for the edge cannot be an empty string");
 
-    UsergridEdge e = new UsergridEdge((UsergridVertex) outVertex, (UsergridVertex) inVertex, label, client);
+    UsergridEdge e = new UsergridEdge( outVertex.getId().toString(),  inVertex.getId().toString(), label);
     UsergridVertex source = (UsergridVertex) outVertex;
     UsergridVertex target = (UsergridVertex) inVertex;
     ApiResponse response = client.connectEntities(source, target, label);
@@ -459,7 +459,7 @@
         String label = properties[1];
         Vertex srcVertex = getVertex(properties[0]);
         Vertex trgVertex = getVertex(properties[2]);
-        Edge connection = new UsergridEdge((UsergridVertex) srcVertex, (UsergridVertex) trgVertex, label, client);
+        Edge connection = new UsergridEdge( srcVertex.getId().toString(), trgVertex.getId().toString(), label);
         //TODO:Check if edge exists in Usergrid
         //TODO: Add validations once the check is added
 
@@ -467,6 +467,7 @@
     }
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
     }
+
 
 
     /**
@@ -485,6 +486,7 @@
     */
 
     assertClientInitialized();
+
     ValidationUtils.validateNotNull(edge,RuntimeException.class, "The edge specified cannot be null");
 
     String edgeId = edge.getId().toString();
@@ -501,6 +503,7 @@
     ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
     ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
     ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
+
 
     }
 
@@ -550,6 +553,7 @@
     2. Close the connection to Usergrid.
     3. Error handling if closeConnection() failed.
     */
+
 
     assertClientInitialized();
     client = null;

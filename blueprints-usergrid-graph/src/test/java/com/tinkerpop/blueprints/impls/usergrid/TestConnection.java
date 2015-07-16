@@ -1,3 +1,5 @@
+package com.tinkerpop.blueprints.impls.usergrid;
+
 import com.tinkerpop.blueprints.*;
 
 /**

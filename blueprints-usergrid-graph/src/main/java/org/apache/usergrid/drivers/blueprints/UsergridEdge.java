@@ -12,18 +12,15 @@ import java.util.UUID;
 /**
  * Created by ApigeeCorporation on 6/29/15.
  */
-public class UsergridEdge extends Connection implements UsergridChangedThing, Edge {
+public class UsergridEdge extends Connection implements Edge {
 
 
   public static final String ARROW_CONNECTOR = "-->";
   public static final String COLON = ":";
 
-  public UsergridEdge(UsergridVertex outV, UsergridVertex inV, String label, Client client) {
-    String sourceID = outV.getType() + COLON + outV.getUuid();
-    String targetId = inV.getType() + COLON + inV.getUuid();
-    setId(sourceID, label, targetId);
+  public UsergridEdge(String outV, String inV, String label) {
+    setId(outV, label, inV);
     setLabel(label);
-    setClientConnection(client);
   }
 
   public void setLabel(String label) {
@@ -34,12 +31,11 @@ public class UsergridEdge extends Connection implements UsergridChangedThing, Ed
   /**
    * sets the property id for the given connection as
    * <sourecetype:uuid>/<label>/<targettype:uuid>
-   *
-   * @param sourceID
+   *  @param sourceID
    * @param label
    * @param targetId
    */
-  private void setId(String sourceID, String label, String targetId) {
+  private void setId(Object sourceID, String label, Object targetId) {
     assertClientInitialized();
     super.setConnectionID(sourceID + ARROW_CONNECTOR + label + ARROW_CONNECTOR + targetId);
   }
@@ -87,7 +83,6 @@ public class UsergridEdge extends Connection implements UsergridChangedThing, Ed
      */
 
     //TODO: validate the edge.
-    Client client = getClientConnection();
     String edgeId = this.getId();
     String[] properties = edgeId.split(ARROW_CONNECTOR);
     String label = properties[1];
@@ -99,7 +94,7 @@ public class UsergridEdge extends Connection implements UsergridChangedThing, Ed
 
     UsergridVertex trgVertex = new UsergridVertex(target[0]);
     trgVertex.setUuid(UUID.fromString(target[1]));
-    client.disconnectEntities(srcVertex, trgVertex, label);
+    UsergridGraph.client.disconnectEntities(srcVertex, trgVertex, label);
   }
 
   public void onChanged(Client client) {
