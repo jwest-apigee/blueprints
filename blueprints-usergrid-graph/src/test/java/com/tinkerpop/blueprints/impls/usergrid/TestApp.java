@@ -1,3 +1,5 @@
+package com.tinkerpop.blueprints.impls.usergrid;
+
 import com.tinkerpop.blueprints.*;
 import org.apache.usergrid.drivers.blueprints.EntityId;
 import org.apache.usergrid.drivers.blueprints.UsergridEdge;
