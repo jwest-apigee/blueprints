@@ -19,6 +19,7 @@ public class ValidationUtils {
   public static final String SERVER_ERROR = "Internal Server Error";
   public static final String INCORRECT_CONTENT = "illegal_argument";
   public static final String ORG_APP_NOT_FOUND= "organization_application_not_found";
+  public static final String RESOURCE_NOT_FOUND = "service_resource_not_found";
 
   public static void validateNotNull(Object o, Class<RuntimeException> exceptionClass, String message) {
     if (o == null) {
@@ -179,14 +180,24 @@ public class ValidationUtils {
     }
     }
 
-    /*
-  public static void checkVertexExists(UsergridVertex vertex, Class<RuntimeException> exceptionClass, String message){
-      if (getVertex(vertex.getId())){
+    public static void validateResourceExists(ApiResponse response, Class<RuntimeException>exceptionClass, String message){
+        if (response.toString().contains(RESOURCE_NOT_FOUND)){
+            try {
+                Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
+                RuntimeException e = c.newInstance(message);
+                throw e;
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-
-      }
-  }
-  */
 
   public static void serverError(ApiResponse response, Class<IOException> exceptionClass, String message){
     if (response.toString().contains(SERVER_ERROR)){
