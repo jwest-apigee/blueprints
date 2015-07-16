@@ -1,3 +1,5 @@
+package com.tinkerpop.blueprints.impls.usergrid;
+
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;

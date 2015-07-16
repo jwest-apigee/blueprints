@@ -1,16 +1,12 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.javaws.exceptions.InvalidArgumentException;
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.SingletonClient;
 import org.apache.usergrid.java.client.response.ApiResponse;
-//import org.apache.usergrid.java.client.model.EntityId;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.*;
 
@@ -103,7 +99,7 @@ public class UsergridGraph implements Graph {
     /**
      * Does the graph ignore user provided ids in graph.addVertex(Object id)?
      */
-    features.ignoresSuppliedIds = Boolean.FALSE;
+    features.ignoresSuppliedIds = Boolean.TRUE;
 
     /**
      * Does the graph persist the graph to disk after shutdown?
@@ -444,7 +440,7 @@ return null;
       throw new IllegalArgumentException("the vertices to connect are invalid");
     }
 
-    UsergridEdge e = new UsergridEdge((UsergridVertex) outVertex, (UsergridVertex) inVertex, label, client);
+    UsergridEdge e = new UsergridEdge( outVertex.getId().toString(),  inVertex.getId().toString(), label);
     UsergridVertex source = (UsergridVertex) outVertex;
     UsergridVertex target = (UsergridVertex) inVertex;
     client.connectEntities(source, target, label);
@@ -469,15 +465,11 @@ return null;
      */
     //Check client initialized.
     assertClientInitialized();
-
     String[] properties = ((String) id).split(ARROW_CONNECTOR);
     String label = properties[1];
-
     Vertex srcVertex = getVertex(properties[0]);
     Vertex trgVertex = getVertex(properties[2]);
-
-    Edge connection = new UsergridEdge((UsergridVertex) srcVertex, (UsergridVertex) trgVertex, label, client);
-
+    Edge connection = new UsergridEdge( srcVertex.getId().toString(), trgVertex.getId().toString(), label);
     System.out.println("connection : " + connection.getId());
     return connection;
   }
@@ -499,13 +491,10 @@ return null;
 
     assertClientInitialized();
     String edgeId = edge.getId().toString();
-
     String[] properties = ((String) edgeId).split(ARROW_CONNECTOR);
     String label = properties[1];
-
     UsergridVertex srcVertex = (UsergridVertex) getVertex(properties[0]);
     UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[2]);
-
     client.disconnectEntities(srcVertex, trgVertex, label);
 
   }
@@ -560,4 +549,5 @@ return null;
         client = null;
         //TODO : get it reviewed.
   }
+
 }
