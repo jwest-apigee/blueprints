@@ -190,9 +190,6 @@ public class UsergridGraph implements Graph {
   public static Client client;
   private String defaultType;
 
-  protected void getClient() {
-
-  }
 
   /**
    * @param config
@@ -200,11 +197,7 @@ public class UsergridGraph implements Graph {
   public UsergridGraph(Configuration config) {
 
 //TODO: Change to appropriate location
-
-        if (config == null) {
-            throw new IllegalArgumentException("Check the configuration settings for Usergrid");
-        }
-
+        ValidationUtils.validateNotNull(config, RuntimeException.class, "Configuration for Usergrid cannot be null" );
         this.defaultType = config.getString("usergrid.defaultType");
 
         //Configuration of Usergrid
@@ -214,16 +207,15 @@ public class UsergridGraph implements Graph {
         String clientId = config.getString("usergrid.client_id");
         String clientSecret = config.getString("usergrid.client_secret");
 
-
-        if (orgName == null || appName == null) {
-            throw new RuntimeException("Check the configuration settings. Organization name or App name for Usergrid is null");
-        }
+        ValidationUtils.validateNotNull(orgName,RuntimeException.class,"Organization name in Usergrid cannot be null");
+        ValidationUtils.validateNotNull(appName, RuntimeException.class, "Application name in Usergrid cannot be null");
+        ValidationUtils.validateStringNotEmpty(orgName, RuntimeException.class, "Organization name cannot be empty in Usergrid");
+        ValidationUtils.validateStringNotEmpty(appName, RuntimeException.class, "Application name cannot be empty in Usergrid");
 
     if (apiUrl == null)
       SingletonClient.initialize(orgName, appName);
     else
       SingletonClient.initialize(apiUrl, orgName, appName);
-
 
         //Get an instance of the client
         client = SingletonClient.getInstance();
@@ -264,7 +256,6 @@ public class UsergridGraph implements Graph {
 
     assertClientInitialized();
     ValidationUtils.validateNotNull(id,RuntimeException.class,"id cannot be of type null");
-
 
     if (id instanceof String) {
 
@@ -329,59 +320,12 @@ return null;
      */
       assertClientInitialized();
       ValidationUtils.validateNotNull(id,RuntimeException.class,"id cannot be of type null");
-      if (id instanceof String) {
-      return getVertexByString((String) id);
-    } else {
-      if (id instanceof EntityId) {
-        return getVertexByEntityId((EntityId) id);
-      }
-    }
-
-    throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
-  }
-
-
-  /**
-   * This gets a particular vertex using the Entity ID.
-   *
-   * @param id
-   * @return
-   */
-  public static Vertex getVertexByEntityId(EntityId id) {
-     /*
-     1) Check if client is initialized
-     2) Check that id is of EntityId (type)
-     3) Get and return the entity
-     4) Return null if no vertex is referenced by the identifier
-     */
-
-    ApiResponse response = SingletonClient.getInstance().queryEntity(id.type, id.UUID);
-    String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-    UsergridVertex v = new UsergridVertex(id.type);
-    v.setUuid(UUID.fromString(uuid));
-    return v;
-  }
-
-
-  /**
-   * This gets a vertex by ID (String)
-   *
-   * @param id
-   * @return
-   */
-  private Vertex getVertexByString(String id) {
-     /*
-     1) Check if client is initialized
-     2) Check that id is a string (type)
-     3) Get and return the entity
-     4) Return null if no vertex is referenced by the identifier
-     */
-
       ValidationUtils.validateStringNotEmpty((String)id,RuntimeException.class,"id cannot be an empty string");
-    String[] parts = id.split(COLON);
-    String type = parts[0];
-    String StringUUID = parts[1];
-    ApiResponse response = SingletonClient.getInstance().queryEntity(type, StringUUID);
+
+      String[] parts = id.toString().split(COLON);
+      String type = parts[0];
+      String StringUUID = parts[1];
+      ApiResponse response = SingletonClient.getInstance().queryEntity(type, StringUUID);
 
       ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
       ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
@@ -391,18 +335,18 @@ return null;
       ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
       String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-    Map<String,JsonNode> vertexProperties = new HashMap<String, JsonNode>();
-    vertexProperties = response.getFirstEntity().getProperties();
-    UsergridVertex v = new UsergridVertex(type);
-    v.setUuid(UUID.fromString(uuid));
+      Map<String,JsonNode> vertexProperties = new HashMap<String, JsonNode>();
+      vertexProperties = response.getFirstEntity().getProperties();
+      UsergridVertex v = new UsergridVertex(type);
+      v.setUuid(UUID.fromString(uuid));
       for (Map.Entry<String, JsonNode> entry : vertexProperties.entrySet()) {
           String key = entry.getKey();
           Object value = entry.getValue();
           v.setLocalProperty(key,value);
       }
-    return v;
-  }
+      return v;
 
+  }
 
   /**
    * This deletes a particular vertex (entity) by taking the vertex as an identifier
@@ -419,7 +363,9 @@ return null;
      4) Delete the vertex //TODO: The method delete() is defined in org.apache.usergrid.java.client.entities but has not been implemented
      5) Return null if no vertex is referenced by the identifier
      */
-
+      assertClientInitialized();
+      ValidationUtils.validateNotNull(vertex,RuntimeException.class,"Vertex cannot be null");
+      ValidationUtils.validateforVertex(vertex,RuntimeException.class,"Type of entity should be Vertex");
     String id = vertex.getId().toString();
     String[] parts = id.split(COLON);
     String type = parts[0];
@@ -487,8 +433,11 @@ return null;
     assertClientInitialized();
 
     //check if the connection name is passed.
-    if (label == null)
-      throw new IllegalArgumentException("label not specified");
+
+      ValidationUtils.validateNotNull(outVertex, RuntimeException.class, "The vertex specified from where the Edge starts cannot be null");
+      ValidationUtils.validateNotNull(inVertex, RuntimeException.class, "The vertex specified, where the Edge ends cannot be null");
+      ValidationUtils.validateNotNull(label,RuntimeException.class, "Label for the edge cannot be null");
+      ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label for the edge cannot be an empty string");
 
     //TODO : will uncomment once getId for vertex is implemented.
     if (getVertex(outVertex.getId()) == null || getVertex(inVertex.getId()) == null) {

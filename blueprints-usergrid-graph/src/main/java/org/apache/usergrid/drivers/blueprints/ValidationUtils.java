@@ -3,6 +3,7 @@ package org.apache.usergrid.drivers.blueprints;
 import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.tinkerpop.blueprints.Direction;
 import org.apache.usergrid.java.client.response.ApiResponse;
+import sun.security.provider.certpath.Vertex;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -15,10 +16,10 @@ public class ValidationUtils {
 
   public static final String STRING_DUPLICATE_PROPERTY = "duplicate_unique_property_exists";
   //TODO: Enter the appropriate error string
-  public static final String INVALID_CREDENTIALS = "invalid_Credentials";
+  public static final String INVALID_CREDENTIALS = "auth_unverified_oath";
   public static final String FORBIDDEN = "forbidden";
-  public static final String SERVER_ERROR = "Server error or 500";
-  public static final String INCORRECT_CONTENT = "Incorrect Content error 400 - Bad request";
+  public static final String SERVER_ERROR = "Internal Server Error";
+  public static final String INCORRECT_CONTENT = "illegal_argument";
   public static final String ORG_APP_NOT_FOUND= "organization_application_not_found";
 
   public static void validateNotNull(Object o, Class<RuntimeException> exceptionClass, String message) {
@@ -68,7 +69,23 @@ public class ValidationUtils {
     }
   }
 
-
+  public static void validateforVertex(Object o, Class<RuntimeException> exceptionClass, String message){
+    if (!(o instanceof Vertex)){
+      try {
+        Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
+        RuntimeException e = c.newInstance(message);
+        throw e;
+      } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      } catch (InstantiationException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   public static void validateDuplicate(ApiResponse response, Class<RuntimeException> exceptionClass, String message) {
     if (response.toString().contains(STRING_DUPLICATE_PROPERTY)) {
@@ -163,6 +180,15 @@ public class ValidationUtils {
         }
     }
     }
+
+    /*
+  public static void checkVertexExists(UsergridVertex vertex, Class<RuntimeException> exceptionClass, String message){
+      if (getVertex(vertex.getId())){
+
+
+      }
+  }
+  */
 
   public static void serverError(ApiResponse response, Class<IOException> exceptionClass, String message){
     if (response.toString().contains(SERVER_ERROR)){
