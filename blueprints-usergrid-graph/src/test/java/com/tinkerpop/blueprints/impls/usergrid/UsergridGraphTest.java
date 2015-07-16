@@ -17,7 +17,7 @@ public class UsergridGraphTest extends GraphTest {
 
     @Override
     public Graph generateGraph() {
-        return generateGraph("/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+        return generateGraph("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
     }
 
     @Override
