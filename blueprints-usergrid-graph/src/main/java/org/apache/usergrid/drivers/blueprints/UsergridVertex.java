@@ -8,8 +8,6 @@ import com.tinkerpop.blueprints.VertexQuery;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.entities.Entity;
 import org.apache.usergrid.java.client.response.ApiResponse;
-
-
 import java.util.*;
 
 /**
