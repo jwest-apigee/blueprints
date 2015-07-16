@@ -19,7 +19,7 @@ public class TestApp {
 
   public static void main(String[] args) {
 
-    Graph usergrid = GraphFactory.open("src/main/resources/usergrid.properties");
+    Graph usergrid = GraphFactory.open("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
 
     System.out.println("Creating VERTICES");
     Vertex person1 = usergrid.addVertex("person:ayesha");
@@ -70,7 +70,7 @@ public class TestApp {
     }
 
     System.out.println("Getting incoming EDGES");
-    Iterable<Edge> edgesIn = person1.getEdges(Direction.IN);
+    Iterable<Edge> edgesIn = restaurant1.getEdges(Direction.IN);
     if (edgesIn != null) {
       for (Edge each : edgesIn) {
         System.out.println("in test app : " + each.getId());
