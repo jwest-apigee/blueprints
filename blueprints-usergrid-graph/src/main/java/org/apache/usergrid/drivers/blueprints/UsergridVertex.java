@@ -37,6 +37,8 @@ public class UsergridVertex extends Entity implements Vertex, UsergridChangedThi
    * @param labels
    * @return
    */
+
+
   public Iterable<Edge> getEdges(Direction direction, String... labels) {
     /**
      1) Check if the vertex exists.
@@ -45,48 +47,48 @@ public class UsergridVertex extends Entity implements Vertex, UsergridChangedThi
      3) Return an iterable of edges
      */
 
-    String srcType = this.getType();
-    String srcId = this.getUuid().toString();
-
-    List<Edge> edges = new ArrayList<Edge>();
-    ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
-    Entity trgUUID = response.getFirstEntity();
-
-    switch (direction){
-      case  OUT:
-        if(trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS) == null){
-          System.out.println("the vertex doesnt have outgoing edges.");
-          return null;
-        }
-        Iterator<String> connections = trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS).fieldNames();
-        while (connections.hasNext()){
-          String name = connections.next();
-          ApiResponse resp = UsergridGraph.client.queryConnection(srcType,srcId,name);
-          List<Entity> entities = resp.getEntities();
-          edges = getAllEdgesForVertex(entities, name, edges,Direction.OUT);
-        }
-        return edges;
-
-      case  IN:
-        if(trgUUID.getProperties().get(METADATA).findValue(CONNECTIONING) == null){
-          System.out.println("the vertex doesnt have incomming edges.");
-          return null;
-        }
-
-        Iterator<String> connectioning = trgUUID.getProperties().get(METADATA).findValue(CONNECTIONING).fieldNames();
-        while (connectioning.hasNext()){
-          String name = connectioning.next();
-          ApiResponse resp = UsergridGraph.client.queryConnectingEdges(srcType, srcId, CONNECTIONING, name);
-          List<Entity> entities = resp.getEntities();
-          edges = getAllEdgesForVertex(entities, name, edges, Direction.IN);
-        }
-        return edges;
-    }
+//    String srcType = this.getType();
+//    String srcId = this.getUuid().toString();
+//
+//    List<Edge> edges = new ArrayList<Edge>();
+//    ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+//    Entity trgUUID = response.getFirstEntity();
+//
+//    switch (direction){
+//      case  OUT:
+//        if(trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS) == null){
+//          System.out.println("the vertex doesnt have outgoing edges.");
+//          return null;
+//        }
+//        Iterator<String> connections = trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS).fieldNames();
+//        while (connections.hasNext()){
+//          String name = connections.next();
+//          ApiResponse resp = UsergridGraph.client.queryConnection(srcType,srcId,name);
+//          List<Entity> entities = resp.getEntities();
+//          edges = getAllEdgesForVertex(entities, name, edges,Direction.OUT);
+//        }
+//        return edges;
+//
+//      case  IN:
+//        if(trgUUID.getProperties().get(METADATA).findValue(CONNECTIONING) == null){
+//          System.out.println("the vertex doesnt have incomming edges.");
+//          return null;
+//        }
+//
+//        Iterator<String> connectioning = trgUUID.getProperties().get(METADATA).findValue(CONNECTIONING).fieldNames();
+//        while (connectioning.hasNext()){
+//          String name = connectioning.next();
+//          ApiResponse resp = UsergridGraph.client.queryConnectingEdges(srcType, srcId, CONNECTIONING, name);
+//          List<Entity> entities = resp.getEntities();
+//          edges = getAllEdgesForVertex(entities, name, edges, Direction.IN);
+//        }
+//        return edges;
+//    }
 
     return null;
   }
 
-
+/*
   private List<Edge> getAllEdgesForVertex(List<Entity> entities, String name,List<Edge> edges, Direction dir) {
     for (int i = 0; i < entities.size(); i++) {
       Entity e = entities.get(i);
@@ -102,6 +104,7 @@ public class UsergridVertex extends Entity implements Vertex, UsergridChangedThi
     }
     return edges;
   }
+  */
 
 
   /**
