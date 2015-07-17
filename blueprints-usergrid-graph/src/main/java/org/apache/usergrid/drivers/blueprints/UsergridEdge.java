@@ -15,7 +15,7 @@ import java.util.UUID;
 public class UsergridEdge extends Connection implements Edge {
 
 
-  public static final String ARROW_CONNECTOR = "-->";
+  public static final String CONNECTOR = "/";
   public static final String COLON = ":";
 
   public UsergridEdge(String outV, String inV, String label) {
@@ -37,7 +37,7 @@ public class UsergridEdge extends Connection implements Edge {
    */
   private void setId(Object sourceID, String label, Object targetId) {
     assertClientInitialized();
-    super.setConnectionID(sourceID + ARROW_CONNECTOR + label + ARROW_CONNECTOR + targetId);
+    super.setConnectionID(sourceID + CONNECTOR + label + CONNECTOR + targetId);
   }
 
   /**
@@ -84,7 +84,7 @@ public class UsergridEdge extends Connection implements Edge {
 
     //TODO: validate the edge.
     String edgeId = this.getId();
-    String[] properties = edgeId.split(ARROW_CONNECTOR);
+    String[] properties = edgeId.split(CONNECTOR);
     String label = properties[1];
     String[] source = properties[0].split(COLON);
     String[] target = properties[2].split(COLON);
@@ -97,11 +97,6 @@ public class UsergridEdge extends Connection implements Edge {
     UsergridGraph.client.disconnectEntities(srcVertex, trgVertex, label);
   }
 
-  public void onChanged(Client client) {
-
-  }
-
-
   /**
    * Return the tail/out or head/in vertex.
    *
@@ -110,7 +105,6 @@ public class UsergridEdge extends Connection implements Edge {
    * @throws IllegalArgumentException
    */
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-
     /*
     1. Check the client initialized.
     2. check the direction : IN -> connected entity , OUT -> connecting entity //TODO discuss : what if its BOTH. ?
@@ -124,9 +118,8 @@ public class UsergridEdge extends Connection implements Edge {
           //TODO : for BOTH
      */
 
-
     String edgeId = this.getId().toString();
-    String[] properties = ((String) edgeId).split(ARROW_CONNECTOR);
+    String[] properties = ((String) edgeId).split(CONNECTOR);
     String[] source = properties[0].split(COLON);
     String[] target = properties[2].split(COLON);
 
