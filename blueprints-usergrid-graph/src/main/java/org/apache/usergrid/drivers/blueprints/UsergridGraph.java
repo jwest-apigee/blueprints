@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class UsergridGraph implements Graph {
 
-  public static final String COLON = ":";
+  public static final String SLASH = "/";
   public static final String STRING_UUID = "uuid";
   public static final String STRING_NAME = "name";
   public static final String ARROW_CONNECTOR = "-->";
@@ -256,7 +256,7 @@ public class UsergridGraph implements Graph {
 
     ValidationUtils.validateStringNotEmpty((String)id,RuntimeException.class,"id cannot be an empty string");
 
-    String[] parts = id.toString().split(COLON);
+    String[] parts = id.toString().split(SLASH);
     String VertexType = parts[0];
     String VertexName = parts[1];
     UsergridVertex v = new UsergridVertex(VertexType);
@@ -275,6 +275,25 @@ public class UsergridGraph implements Graph {
     String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
     v.setUuid(UUID.fromString(uuid));
     return v;
+    }
+      else if ((id instanceof Object)){
+      UsergridVertex v = new UsergridVertex(defaultType);
+      String VertexName = id.toString();
+      v.setLocalProperty(STRING_NAME, VertexName);
+      v.setLocalProperty("_ugName", VertexName);
+      v.setLocalProperty("_ugBlueprintsId", id);
+      ApiResponse response = client.createEntity(v);
+
+      ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
+      ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
+      ValidationUtils.validateDuplicate(response,RuntimeException.class, "Entity with the name specified already exists in Usergrid");
+      ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+      ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+      ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+
+      String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
+      v.setUuid(UUID.fromString(uuid));
+      return v;
     }
     throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
     }
@@ -303,7 +322,7 @@ public class UsergridGraph implements Graph {
     if (id instanceof String) {
         ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
 
-        String[] parts = id.toString().split(COLON);
+        String[] parts = id.toString().split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
         ApiResponse response = SingletonClient.getInstance().queryEntity(type, StringUUID);
@@ -349,7 +368,7 @@ public class UsergridGraph implements Graph {
     ValidationUtils.validateNotNull(vertex,RuntimeException.class,"Vertex cannot be null");
     ValidationUtils.validateforVertex(vertex,RuntimeException.class,"Type of entity should be Vertex");
     String id = vertex.getId().toString();
-    String[] parts = id.split(COLON);
+    String[] parts = id.split(SLASH);
     String type = parts[0];
     String StringUUID = parts[1];
     ApiResponse response = SingletonClient.getInstance().deleteEntity(type, StringUUID);

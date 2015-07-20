@@ -10,19 +10,40 @@ import com.tinkerpop.blueprints.Vertex;
 public class TestAppForVertex {
     public static void main(String[] args) {
 
-
         Graph usergrid = GraphFactory.open("src/main/resources/usergrid.properties");
 
-        Vertex v1 = usergrid.addVertex("person:Nishita"); // Adds a vertex
-        Vertex testGet = usergrid.getVertex(v1.getId()); //Gets vertex using getVertex which in turn uses getId
-        System.out.println(testGet);
+        //ADD VERTEX
+
+        //Test for null
+        Vertex nullValue = usergrid.addVertex(null); // Adds a vertex
+
+        //Test for Empty String
+        Vertex EmptyString = usergrid.addVertex("");
+
+        //Test for invalid String ID
+        Vertex InvalidString = usergrid.addVertex("person");
+
+        //Test for invalid Object ID
+        Vertex InvalidObject = usergrid.addVertex(123);
+
+        //Test for duplicate
+        Vertex Original = usergrid.addVertex("person:Anne");
+        Vertex Duplicate = usergrid.addVertex("person:Anne");
+
+        //Check for invalid Org name
+        Graph incorrectOrg_Graph = GraphFactory.open("src/main/resources/usergrid_incorrectOrg.properties");
+        Vertex incorrectOrg_Vertex = incorrectOrg_Graph.addVertex("person/Anne");
+
+        //Check for invalid App name
+        Graph incorrectApp_Graph = GraphFactory.open("src/main/resources/usergrid_incorrectApp.properties");
+        Vertex incorrectApp_Vertex = incorrectApp_Graph.addVertex("person/Anne");
+
+        //Check for invalid credentials
+        Graph incorrectCred_Graph = GraphFactory.open("src/main/resources/usergrid_incorrectCred.properties");
+        Vertex incorrectCred_Vertex = incorrectCred_Graph.addVertex("person/Anne");
 
 
 
-        //v2.removeProperty("tag"); //TODO: Have to check whether Usergrid supports this
-        //System.out.println(v2);
-
-        //Deletes the vertex
 
 
 
