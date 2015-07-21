@@ -56,7 +56,7 @@ public class TestApp {
     System.out.println();
     System.out.println("Getting An EDGE");
 //    person:ayesha-->visits-->restaurant:amici
-    String edgeId = person1.getId() + "-->visits-->" + restaurant1.getId();
+    String edgeId = person1.getId() + "/visits/" + restaurant1.getId();
     e3 = usergrid.getEdge(edgeId);
     System.out.println("Get edge : " + e3.getId());
 

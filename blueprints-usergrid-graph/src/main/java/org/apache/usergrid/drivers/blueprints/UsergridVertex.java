@@ -90,7 +90,7 @@ public class UsergridVertex extends Entity implements Vertex, UsergridChangedThi
          direction = Direction.OUT;
       }
       else {
-         resp = UsergridGraph.client.queryConnectingEdges(srcType, srcId, CONNECTIONING, name);
+         resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, name);
          direction = Direction.IN;
       }
       List<Entity> entities = resp.getEntities();
