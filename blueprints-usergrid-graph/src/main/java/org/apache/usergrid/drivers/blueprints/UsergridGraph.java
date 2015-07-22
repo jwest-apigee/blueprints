@@ -7,6 +7,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.SingletonClient;
 import org.apache.usergrid.java.client.response.ApiResponse;
+import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 import java.util.*;
@@ -254,27 +255,48 @@ public class UsergridGraph implements Graph {
 
     if (id instanceof String) {
 
-    ValidationUtils.validateStringNotEmpty((String)id,RuntimeException.class,"id cannot be an empty string");
+        ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
 
-    String[] parts = id.toString().split(SLASH);
-    String VertexType = parts[0];
-    String VertexName = parts[1];
-    UsergridVertex v = new UsergridVertex(VertexType);
-    v.setLocalProperty(STRING_NAME, VertexName);
-    v.setLocalProperty("_ugName", VertexName);
-    v.setLocalProperty("_ugBlueprintsId", id);
-    ApiResponse response = client.createEntity(v);
+        if (id.toString().contains("/")) {
+            String[] parts = id.toString().split(SLASH);
+            String VertexType = parts[0];
+            String VertexName = parts[1];
+            UsergridVertex v = new UsergridVertex(VertexType);
+            v.setLocalProperty(STRING_NAME, VertexName);
+            v.setLocalProperty("_ugName", VertexName);
+            v.setLocalProperty("_ugBlueprintsId", id);
+            ApiResponse response = client.createEntity(v);
 
-    ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
-    ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
-    ValidationUtils.validateDuplicate(response,RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-    ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-    ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-    ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+            ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
+            ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+            ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
+            ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+            ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+            ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
-    String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-    v.setUuid(UUID.fromString(uuid));
-    return v;
+            String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
+            v.setUuid(UUID.fromString(uuid));
+            return v;
+        }
+        else {
+            UsergridVertex v = new UsergridVertex(defaultType);
+            String VertexName = id.toString();
+            v.setLocalProperty(STRING_NAME, VertexName);
+            v.setLocalProperty("_ugName", VertexName);
+            v.setLocalProperty("_ugBlueprintsId", id);
+            ApiResponse response = client.createEntity(v);
+
+            ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
+            ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
+            ValidationUtils.validateDuplicate(response,RuntimeException.class, "Entity with the name specified already exists in Usergrid");
+            ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+            ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+            ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+
+            String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
+            v.setUuid(UUID.fromString(uuid));
+            return v;
+        }
     }
       else if ((id instanceof Object)){
       UsergridVertex v = new UsergridVertex(defaultType);
@@ -403,6 +425,7 @@ public class UsergridGraph implements Graph {
     *
     * @return
     */
+
 
     public Iterable<Vertex> getVertices() {
     // need to be able to page

@@ -205,12 +205,13 @@
      3) If any other type throw an error
      */
 
-    //Check if vertex exists?
+    //TODO: Check if vertex exists?
 
     ValidationUtils.validateNotNull(key,RuntimeException.class,"Property key cannot be null");
     ValidationUtils.validateStringNotEmpty(key,RuntimeException.class,"Property key cannot be empty");
 
-    T propertyValue = (T) super.getStringProperty(key);
+    //T propertyValue = (T) super.getStringProperty(key);
+    T propertyValue = (T) super.getEntityProperty(key);
 
     //TODO: Check if property exists
 
@@ -223,20 +224,30 @@
     * @return
     */
     public Set<String> getPropertyKeys() {
-    return null;
+
+        //TODO: Check if vertex exists?
+
+        Set<String> allKeys = super.getProperties().keySet();
+    return allKeys;
     }
+
+
 
     public void onChanged(Client client) {
 
     }
 
     /**
-    * This sets a particular value of a property using the specified key
+    * This sets a particular value of a property using the specified key in the local object
     *
     * @param key
     * @param value
     */
     public void setLocalProperty(String key, Object value) {
+
+    ValidationUtils.validateNotNull(key,RuntimeException.class, "Key for the property cannot be null");
+
+    ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
 
     if (value instanceof String) {
     super.setProperty(key, (String) value);
@@ -256,10 +267,8 @@
     }
 
     public void setProperty(String key, Object value) {
-
-    setLocalProperty(key, value);
-
-    super.save();
+        setLocalProperty(key, value);
+        super.save();
     }
 
     /**
@@ -270,11 +279,10 @@
     * @return
     */
     public <T> T removeProperty(String key) {
+        T oldValue = this.getProperty(key);
 
-    JsonNode oldValue = super.properties.get(key);
-    super.properties.remove(key);
-    super.save();
-    return (T) oldValue;
+        super.setProperty(key, (String) null);
+    return  oldValue;
     }
 
     /**
