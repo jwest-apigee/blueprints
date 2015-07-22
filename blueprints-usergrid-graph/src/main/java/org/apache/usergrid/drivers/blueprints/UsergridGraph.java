@@ -23,7 +23,7 @@ public class UsergridGraph implements Graph {
     private static final int COUNT = 0;
     public static Client client;
     private static String defaultType;
-    private final int entityRetrivalCount;
+    private static int entityRetrivalCount;
 
 
     private static String METADATA = "metadata";
