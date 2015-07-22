@@ -14,27 +14,36 @@ import java.util.UUID;
 /**
  * Created by ApigeeCorporation on 6/29/15.
  */
-public class TestApp {
+public class AppTest {
 
 
   public static void main(String[] args) {
 
     Graph usergrid = GraphFactory.open("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
 
+//    Iterable allvertices = usergrid.getVertices();
+//    System.out.println(allvertices);
+
     System.out.println("Creating VERTICES");
-    Vertex person1 = usergrid.addVertex("person:ayesha");
+    Vertex person1 = usergrid.addVertex("person/Anne");
     System.out.println("id person1 :: " + person1.getId());
 
-    Vertex restaurant1 = usergrid.addVertex("restaurant:amici");
+    Vertex restaurant1 = usergrid.addVertex("restaurant/Amici");
     System.out.println("id restaurant1 :: " + restaurant1.getId());
 
-    Vertex restaurant2 = usergrid.addVertex("restaurant:CPK");
+    Vertex restaurant2 = usergrid.addVertex("restaurant/CPK");
     System.out.println("id restaurant2 :: " + restaurant2.getId());
+
+//    System.out.println("Checking if default object is created, when ObjectID is passed");
+//    Vertex object1 = usergrid.addVertex(123);
+//    System.out.println("id object1 :: " + object1.getId());
 
     System.out.println();
     System.out.println("Getting VERTICES");
     Vertex testGet = usergrid.getVertex(person1.getId()); //Gets vertex using getVetex which in turn uses getId
     System.out.println(testGet);
+    Vertex testGet2 = usergrid.getVertex("person/Anne"); //Gets vertex using getVetex which in turn uses getId
+    System.out.println(testGet2);
 
     System.out.println();
     System.out.println("Setting and getting propertices for VERTICES");
@@ -55,8 +64,10 @@ public class TestApp {
 
     System.out.println();
     System.out.println("Getting An EDGE");
-//    person:ayesha-->visits-->restaurant:amici
+
+//    person:ayesha/visits/restaurant:amici
     String edgeId = person1.getId() + "/visits/" + restaurant1.getId();
+
     e3 = usergrid.getEdge(edgeId);
     System.out.println("Get edge : " + e3.getId());
 

@@ -6,27 +6,35 @@ import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.SingletonClient;
+import org.apache.usergrid.java.client.entities.Entity;
 import org.apache.usergrid.java.client.response.ApiResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 import java.util.*;
+import org.apache.log4j.Logger;
 
 /**
  * Created by ApigeeCorporation on 6/29/15.
  */
 public class UsergridGraph implements Graph {
 
-    private static final Logger log = LoggerFactory.getLogger(UsergridGraph.class);
+    private static final int COUNT = 0;
     public static Client client;
     private static String defaultType;
+    private final int entityRetrivalCount;
 
-    public static final String COLON = ":";
+
+    private static String METADATA = "metadata";
+    private static String COLLECTIONS = "collections";
+    private static final Logger log = Logger.getLogger(UsergridGraph.class);
+
+    public static final String SLASH = "/";
     public static final String STRING_UUID = "uuid";
     public static final String STRING_NAME = "name";
-    public static final String CONNECTOR = "/";
 
+    public static final String CONNECTOR = "/";
     private static Features features;
 
     static {
@@ -192,6 +200,8 @@ public class UsergridGraph implements Graph {
         features.supportsThreadIsolatedTransactions = Boolean.FALSE;
     }
 
+
+
     /**
      * @param config
      */
@@ -200,6 +210,8 @@ public class UsergridGraph implements Graph {
         //TODO: Change to appropriate location
         ValidationUtils.validateNotNull(config, RuntimeException.class, "Configuration for Usergrid cannot be null");
         this.defaultType = config.getString("usergrid.defaultType");
+        this.entityRetrivalCount = config.getInt("usergrid.entityRetrivalCount");
+        log.debug("UsergridGraph() : Setting the default type to : " + this.defaultType );
 
         //Configuration for Usergrid
         String orgName = config.getString("usergrid.organization");
@@ -217,14 +229,15 @@ public class UsergridGraph implements Graph {
             SingletonClient.initialize(orgName, appName);
         else
             SingletonClient.initialize(apiUrl, orgName, appName);
-        log.debug("Initializing the SingletonClient");
+        log.debug("UsergridGraph() : Initializing the SingletonClient");
 
         //Get an instance of the client
         client = SingletonClient.getInstance();
+        ValidationUtils.validateNotNull(client, RuntimeException.class, "Client could not be instantiated.");
 
         //Authorize the Application with the credentials provided in the Configuration file
         client.authorizeAppClient(clientId, clientSecret);
-        log.debug("Authorizing the client application. Client is initialized with the application url : " + client.getApiUrl() + client.getOrganizationId());
+        log.debug("UsergridGraph() : Authorizing the client application. Client is initialized with the application url : " + client.getApiUrl() + client.getOrganizationId());
     }
 
 
@@ -234,6 +247,7 @@ public class UsergridGraph implements Graph {
      * @return
      */
     public Features getFeatures() {
+        log.debug("getFeatures() : The features set are : " + features);
         return features;
     }
 
@@ -256,37 +270,50 @@ public class UsergridGraph implements Graph {
 
         assertClientInitialized();
         ValidationUtils.validateNotNull(id, RuntimeException.class, "id cannot be of type null");
-
+        String[] parts = new String[2];
+        String VertexType = null;
+        String VertexName = null;
+        UsergridVertex v = null;
         if (id instanceof String) {
-
+            log.debug("DEBUG addVertex(): id passed is an instance of string ");
             ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
+            parts = id.toString().split(SLASH);
+            VertexType = parts[0];
+            VertexName = parts[1];
+            v = new UsergridVertex(VertexType);
 
-            String[] parts = id.toString().split(COLON);
-            String VertexType = parts[0];
-            String VertexName = parts[1];
-            UsergridVertex v = new UsergridVertex(VertexType);
-            v.setLocalProperty(STRING_NAME, VertexName);
-            v.setLocalProperty("_ugName", VertexName);
-            v.setLocalProperty("_ugBlueprintsId", id);
-            ApiResponse response = client.createEntity(v);
-            log.debug("DEBUG addVertex(): Api response returned for Create vertex is : " + response);
+        } else if ((id instanceof Object)) {
+            log.debug("DEBUG addVertex(): id passed is an instance of object ");
+            v = new UsergridVertex(defaultType);
+            VertexName = id.toString();
 
-            ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-            ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-            ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-            ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-            ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-            ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
-
-            String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-            v.setUuid(UUID.fromString(uuid));
-
-
-            log.debug("DEBUG addVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-
-            return v;
         }
-        throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        else
+        {
+            log.error("ERROR addVertex(): id passed is in an invalid format.");
+            throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        }
+
+        v.setLocalProperty(STRING_NAME, VertexName);
+        v.setLocalProperty("_ugName", VertexName);
+        v.setLocalProperty("_ugBlueprintsId", id);
+        ApiResponse response = client.createEntity(v);
+        log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
+
+        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
+        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+        ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
+        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+
+        String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
+        v.setUuid(UUID.fromString(uuid));
+
+        log.debug("DEBUG addVertex(): Returning vertex with uuid : " + v.getUuid().toString());
+        return v;
+
+
     }
 
 
@@ -310,14 +337,14 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateNotNull(id, RuntimeException.class, "id cannot be of type null");
 
         if (id instanceof String) {
+            log.debug("DEBUG getVertex(): id is an instance of sting");
             ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
 
-            String[] parts = id.toString().split(COLON);
+            String[] parts = id.toString().split(SLASH);
             String type = parts[0];
             String StringUUID = parts[1];
             ApiResponse response = SingletonClient.getInstance().queryEntity(type, StringUUID);
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
-
 
             ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
             ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
@@ -334,12 +361,14 @@ public class UsergridGraph implements Graph {
                 String key = entry.getKey();
                 Object value = entry.getValue();
                 v.setLocalProperty(key, value);
+
+                log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
+                log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
+                return v;
             }
-            log.debug("DEBUG getVertex(): Properties of the vertex : '"+ v.getProperty("name") + "' got are : " + v.getProperties());
-            log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-            return v;
         }
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+
     }
 
     /**
@@ -357,12 +386,11 @@ public class UsergridGraph implements Graph {
     4) Delete the vertex //TODO: The method delete() is defined in org.apache.usergrid.java.client.entities but has not been implemented
     5) Return null if no vertex is referenced by the identifier
     */
-
         assertClientInitialized();
         ValidationUtils.validateNotNull(vertex, RuntimeException.class, "Vertex cannot be null");
         ValidationUtils.validateforVertex(vertex, RuntimeException.class, "Type of entity should be Vertex");
         String id = vertex.getId().toString();
-        String[] parts = id.split(COLON);
+        String[] parts = id.split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
         ApiResponse response = SingletonClient.getInstance().deleteEntity(type, StringUUID);
@@ -373,7 +401,6 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
         ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
         ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
-
         log.debug("DEBUG removeVertex(): succesfully removed the vertex");
 
     }
@@ -389,7 +416,7 @@ public class UsergridGraph implements Graph {
      * @return
      */
     public Iterable<Vertex> getVertices(String key, Object value) {
-        return null;
+        throw new UnsupportedOperationException("Not Supported in Usergris");
     }
 
     /**
@@ -402,8 +429,7 @@ public class UsergridGraph implements Graph {
      */
 
     public Iterable<Vertex> getVertices() {
-        // need to be able to page
-        return null;
+     throw new UnsupportedOperationException("Not Supported in Usergris");
     }
 
 
@@ -445,7 +471,7 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
         ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
         ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
-        log.debug("DEBUG addEdge(): Returning vertex with id : " + e.getId());
+        log.debug("DEBUG addEdge(): Returning Edge with id : " + e.getId());
 
         return e;
 
@@ -473,19 +499,24 @@ public class UsergridGraph implements Graph {
 
             ValidationUtils.validateStringNotEmpty(id.toString(), RuntimeException.class, "ID cannot be an empty string");
             String[] properties = ((String) id).split(CONNECTOR);
-            String label = properties[1];
-            String[] source = properties[0].split(":");
-            String[] target = properties[2].split(":");
-            Vertex srcVertex = getVertex(properties[0]);
+            String label = properties[2];
+
+            //Check if the edge is valid.
+            ApiResponse response = client.apiRequest(HttpMethod.GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            if(response.getError() != null){
+//                log.error("The get requested does not exists in the database.");
+                throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
+            }
+
+            Vertex srcVertex = getVertex(properties[0] + "/" + properties[1]);
             log.debug("DEBUG getEdge(): source vertex returned with id : " + srcVertex.getId());
 
-            Vertex trgVertex = getVertex(properties[2]);
+            Vertex trgVertex = getVertex(properties[3] + "/" + properties[4]);
             log.debug("DEBUG getEdge(): target vertex returned with id : " + trgVertex.getId());
-            //TODO:Check if edge exists in Usergrid
-            //TODO: Add validations once the check is added
 
-            client.queryConnection(source[0],source[1],label,target[0] ,target[1]);
+            client.queryConnection(properties[0], properties[1], label, properties[3], properties[4]);
             Edge connection = new UsergridEdge(srcVertex.getId().toString(), trgVertex.getId().toString(), label);
+            log.debug("DEBUG addEdge(): Returning Edge with id : " + connection.getId());
 
             return connection;
         }
@@ -515,10 +546,13 @@ public class UsergridGraph implements Graph {
         String edgeId = edge.getId().toString();
         ValidationUtils.validateStringNotEmpty(edgeId, RuntimeException.class, "Unable to obtain the Edge ID of the edge specified");
         String[] properties = (edgeId).split(CONNECTOR);
-        String label = properties[1];
-        UsergridVertex srcVertex = (UsergridVertex) getVertex(properties[0]);
-        UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[2]);
+        String label = properties[2];
+        UsergridVertex srcVertex = (UsergridVertex) getVertex(properties[0] + "/" + properties[1]);
+        UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[3] + "/" + properties[4]);
+        log.debug("DEBUG getvertEdge(): source vertex returned with id : " + srcVertex.getId());
+
         ApiResponse response = client.disconnectEntities(srcVertex, trgVertex, label);
+        log.debug("DEBUG removeEdge(): Response returned from API call to disconnect Vertices is : " + response);
 
         ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
         ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
@@ -527,7 +561,7 @@ public class UsergridGraph implements Graph {
         ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
         ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
 
-
+        log.debug("DEBUG removeEdge(): exiting from remove edge.");
     }
 
     /**
@@ -537,8 +571,9 @@ public class UsergridGraph implements Graph {
      */
 
     public Iterable<Edge> getEdges() {
-        throw new UnsupportedOperationException("Not supported for Usergrid");
+    throw new UnsupportedOperationException("Not supported for Usergrid");
     }
+
 
     /**
      * Not implemented for Usergrid.
@@ -576,9 +611,8 @@ public class UsergridGraph implements Graph {
     2. Close the connection to Usergrid.
     3. Error handling if closeConnection() failed.
     */
-
-
         assertClientInitialized();
+        log.debug("DEBUG shutdown(): making the client null");
         client = null;
         //TODO : Get shutdown() of client reviewed.
     }
