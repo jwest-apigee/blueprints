@@ -96,6 +96,7 @@
     Iterator<String> connections = trgUUID.getProperties().get(METADATA).findValue(conn).fieldNames();
     Direction direction = null;
     while (connections.hasNext()){
+
     String name = connections.next();
     ApiResponse resp = null;
     if(conn == CONNECTIONS) {
@@ -103,7 +104,7 @@
      direction = Direction.OUT;
     }
     else {
-     resp = UsergridGraph.client.queryConnectingEdges(srcType, srcId, CONNECTIONING, name);
+     resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, name);
      direction = Direction.IN;
     }
     List<Entity> entities = resp.getEntities();
@@ -186,7 +187,7 @@
     ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
     ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
-    return e;
+      return e;
     }
 
     /**
