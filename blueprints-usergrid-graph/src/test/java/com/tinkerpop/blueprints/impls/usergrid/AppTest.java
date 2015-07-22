@@ -34,9 +34,9 @@ public class AppTest {
     Vertex restaurant2 = usergrid.addVertex("restaurant/CPK");
     System.out.println("id restaurant2 :: " + restaurant2.getId());
 
-//    System.out.println("Checking if default object is created, when ObjectID is passed");
-//    Vertex object1 = usergrid.addVertex(123);
-//    System.out.println("id object1 :: " + object1.getId());
+    System.out.println("Checking if default object is created, when ObjectID is passed");
+    Vertex object1 = usergrid.addVertex(123);
+    System.out.println("id object1 :: " + object1.getId());
 
     System.out.println();
     System.out.println("Getting VERTICES");

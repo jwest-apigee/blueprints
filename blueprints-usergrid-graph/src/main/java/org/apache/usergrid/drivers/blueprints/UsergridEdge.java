@@ -21,7 +21,6 @@ public class UsergridEdge extends Connection implements Edge {
 
 
   public static final String CONNECTOR = "/";
-  public static final String COLON = ":";
 
   public UsergridEdge(String outV, String inV, String label) {
     setId(outV, label, inV);
@@ -128,17 +127,15 @@ public class UsergridEdge extends Connection implements Edge {
 
     String edgeId = this.getId().toString();
     String[] properties = ((String) edgeId).split(CONNECTOR);
-    String[] source = properties[0].split(COLON);
-    String[] target = properties[2].split(COLON);
 
     switch (direction) {
       case OUT:
-        UsergridVertex srcVertex = new UsergridVertex(source[0]);
-        srcVertex.setUuid(UUID.fromString(source[1]));
+        UsergridVertex srcVertex = new UsergridVertex(properties[0]);
+        srcVertex.setUuid(UUID.fromString(properties[1]));
         return srcVertex; //return source vertex
       case IN:
-        UsergridVertex trgVertex = new UsergridVertex(target[0]);
-        trgVertex.setUuid(UUID.fromString(target[1]));
+        UsergridVertex trgVertex = new UsergridVertex(properties[3]);
+        trgVertex.setUuid(UUID.fromString(properties[4]));
         return trgVertex;  // return target vertex
     }
 
