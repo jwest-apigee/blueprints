@@ -41,24 +41,23 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
     public void testBasicUgAddVertex() {
         //Case1 : Vertex with valid id
         Vertex v = graph.addVertex("person/person1");
-        assertEquals("person/blperson1", v.getId().toString());
+        assertEquals("person/person1", v.getId().toString());
 
         //Case2 : Adding vertex with default type
-        v = graph.addVertex("blperson2");
+        v = graph.addVertex("person2");
         assertEquals(defaultType + "/person2", v.getId().toString());
 
         //Case3 : Changing the type of the vertex
         //TODO : once set type is implemented will uncomment this code.
         //v.setType("person");
         //assertEquals("person/person2", v.getId().toString());
-
     }
 
     public void testBasicUgSetVertexProperties() {
         //Case1 : Vertex with valid id and property
         Vertex v = graph.addVertex("person/person3");
         v.setProperty("age",20);
-        assertEquals(20, v.getProperty("age"));
+        assertEquals(20,v.getProperty("age"));
 
         //setting multiple properties - float and string
         v.setProperty("weight", 97.5);
@@ -99,10 +98,9 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
 
         Edge e4 = graph.addEdge(null, v1,v2,"likes");
         assertEquals(v1.getId()+"/likes/"+v2.getId(),e4.getId().toString());
-        assertEquals("person/person5",e4.getVertex(Direction.IN).getId());
-        assertEquals("restaurants/CheeseCakeFactory",e4.getVertex(Direction.OUT).getId());
+        assertEquals("person/person5",e4.getVertex(Direction.OUT).getId());
+        assertEquals("restaurants/CheeseCakeFactory",e4.getVertex(Direction.IN).getId());
         assertEquals("likes",e4.getLabel());
-
     }
 
 
