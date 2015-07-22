@@ -1,6 +1,5 @@
 package org.apache.usergrid.drivers.blueprints;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;

@@ -8,6 +8,7 @@ import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.SingletonClient;
 import org.apache.usergrid.java.client.entities.Entity;
 import org.apache.usergrid.java.client.response.ApiResponse;
+import org.springframework.http.HttpMethod;
 
 import org.springframework.http.HttpMethod;
 
@@ -23,7 +24,7 @@ public class UsergridGraph implements Graph {
     private static final int COUNT = 0;
     public static Client client;
     private static String defaultType;
-    private final int entityRetrivalCount;
+    private static int entityRetrivalCount;
 
 
     private static String METADATA = "metadata";
@@ -277,10 +278,16 @@ public class UsergridGraph implements Graph {
         if (id instanceof String) {
             log.debug("DEBUG addVertex(): id passed is an instance of string ");
             ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
-            parts = id.toString().split(SLASH);
-            VertexType = parts[0];
-            VertexName = parts[1];
-            v = new UsergridVertex(VertexType);
+            if (id.toString().contains("/")) {
+                parts = id.toString().split(SLASH);
+                VertexType = parts[0];
+                VertexName = parts[1];
+                v = new UsergridVertex(VertexType);
+            }
+            else{
+                v = new UsergridVertex(defaultType);
+                VertexName = id.toString();
+            }
 
         } else if ((id instanceof Object)) {
             log.debug("DEBUG addVertex(): id passed is an instance of object ");
@@ -312,7 +319,6 @@ public class UsergridGraph implements Graph {
 
         log.debug("DEBUG addVertex(): Returning vertex with uuid : " + v.getUuid().toString());
         return v;
-
 
     }
 
@@ -427,6 +433,7 @@ public class UsergridGraph implements Graph {
      *
      * @return
      */
+
 
     public Iterable<Vertex> getVertices() {
      throw new UnsupportedOperationException("Not Supported in Usergris");

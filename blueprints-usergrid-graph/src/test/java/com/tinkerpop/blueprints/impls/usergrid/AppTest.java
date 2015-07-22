@@ -38,6 +38,10 @@ public class AppTest {
 //    Vertex object1 = usergrid.addVertex(123);
 //    System.out.println("id object1 :: " + object1.getId());
 
+    System.out.println("Checking if default object is created, when random String is passed");
+    Vertex object2 = usergrid.addVertex("Betty");
+    System.out.println("id object1 :: " + object2.getId());
+
     System.out.println();
     System.out.println("Getting VERTICES");
     Vertex testGet = usergrid.getVertex(person1.getId()); //Gets vertex using getVetex which in turn uses getId
@@ -48,7 +52,31 @@ public class AppTest {
     System.out.println();
     System.out.println("Setting and getting propertices for VERTICES");
     restaurant1.setProperty("tag", "Italian"); // Sets a property
+    restaurant1.setProperty("area", "MV");
+    restaurant1.setProperty("rating", 5);
+    Integer location = -1;
+    restaurant1.setProperty("location",location);
+    System.out.println("Integer " + restaurant1.getProperty("location"));
+    Float number = 3.6f;
+    restaurant1.setProperty("number",number);
+    System.out.println("Float " + restaurant1.getProperty("number"));
+    restaurant1.setProperty("exists", true);
     System.out.println("Getting the property for Amici restaurant : " + restaurant1.getProperty("tag")); //Gets a property
+    System.out.println("All keys : " + restaurant1.getPropertyKeys());
+    //Gets Long value
+    System.out.println("Getting the rating for Amici restaurant : " + restaurant1.getProperty("rating"));
+    //Gets Boolean Value
+    System.out.println("Getting the rating for Amici restaurant : " + restaurant1.getProperty("exists"));
+
+
+    //Removes properties
+    System.out.println();
+    System.out.println("Removes properties for VERTICES");
+    //Long rating = restaurant1.removeProperty("rating");
+    String tag = restaurant1.removeProperty("tag");
+    Boolean exists = restaurant1.removeProperty("exists");
+    System.out.println("Properties deleted:"+" "+tag+" "+exists);
+
 
     System.out.println();
     System.out.println("Adding EDGES");
