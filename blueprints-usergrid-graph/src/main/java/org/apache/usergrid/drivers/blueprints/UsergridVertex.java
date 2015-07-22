@@ -115,7 +115,7 @@
     private List<Edge> getAllEdgesForVertex(List<Entity> entities, String name,List<Edge> edges, Direction dir) {
     for (int i = 0; i < entities.size(); i++) {
     Entity e = entities.get(i);
-    String v = e.getType() + SLASH + e.getUuid();
+    String v = e.getType() + SLASH + e.getStringProperty("name");
     Edge e1 = null;
     if (dir == Direction.OUT)
       e1 = new UsergridEdge(this.getId().toString(),v,name);
