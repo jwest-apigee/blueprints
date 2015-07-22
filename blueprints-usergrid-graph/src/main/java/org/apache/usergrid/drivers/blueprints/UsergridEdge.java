@@ -1,13 +1,16 @@
 package org.apache.usergrid.drivers.blueprints;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.log4j.Logger;
-import org.apache.usergrid.java.client.Client;
-import org.apache.usergrid.java.client.entities.*;
+import org.apache.usergrid.java.client.SingletonClient;
+import org.apache.usergrid.java.client.entities.Connection;
 import org.apache.usergrid.java.client.response.ApiResponse;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,6 +23,10 @@ public class UsergridEdge extends Connection implements Edge {
 
 
   public static final String CONNECTOR = "/";
+
+  public static final String STRING_UUID = "uuid";
+  public static final String STRING_NAME = "name";
+
 
   public UsergridEdge(String outV, String inV, String label) {
     setId(outV, label, inV);
@@ -125,20 +132,32 @@ public class UsergridEdge extends Connection implements Edge {
      */
 
     String edgeId = this.getId().toString();
+    String type = null;
     String[] properties = ((String) edgeId).split(CONNECTOR);
-
-    switch (direction) {
-      case OUT:
-        UsergridVertex srcVertex = new UsergridVertex(properties[0]);
-        srcVertex.setUuid(UUID.fromString(properties[1]));
-        return srcVertex; //return source vertex
-      case IN:
-        UsergridVertex trgVertex = new UsergridVertex(properties[3]);
-        trgVertex.setUuid(UUID.fromString(properties[4]));
-        return trgVertex;  // return target vertex
+    ApiResponse response = null;
+    if (direction == Direction.OUT) {
+       response = SingletonClient.getInstance().queryEntity(properties[0], properties[1]);
+      type = properties[0];
+      log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
+    } else if (direction == Direction.IN) {
+       response = SingletonClient.getInstance().queryEntity(properties[3], properties[4]);
+      type = properties[3];
+      log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     }
+    String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
+    Map<String, JsonNode> vertexProperties = new HashMap<String, JsonNode>();
+    vertexProperties = response.getFirstEntity().getProperties();
+    UsergridVertex v = new UsergridVertex(type);
+    v.setUuid(UUID.fromString(uuid));
+    for (Map.Entry<String, JsonNode> entry : vertexProperties.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+      v.setLocalProperty(key, value);
+      log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
+      log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
+    }
+      return v; // return target vertex
 
-    return null;
   }
 
   /**
