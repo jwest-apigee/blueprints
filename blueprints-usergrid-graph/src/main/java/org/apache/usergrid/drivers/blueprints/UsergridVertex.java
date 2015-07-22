@@ -301,10 +301,9 @@
     * @return
     */
     public Object getId() {
-
     String ObjectType = this.getType();
     UUID ObjectUUID = this.getUuid();
-    String id = ObjectType + SLASH + ObjectUUID;
+    String id = ObjectType + SLASH + this.getProperty("name");
     return id;
 
     }
