@@ -40,25 +40,24 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
 
     public void testBasicUgAddVertex() {
         //Case1 : Vertex with valid id
-        Vertex v = graph.addVertex("person/person1");
-        assertEquals("person/blperson1", v.getId().toString());
+        Vertex v = graph.addVertex("person/personV1");
+        assertEquals("person/personV1", v.getId().toString());
 
         //Case2 : Adding vertex with default type
-        v = graph.addVertex("blperson2");
-        assertEquals(defaultType + "/person2", v.getId().toString());
+        v = graph.addVertex("personV2");
+        assertEquals(defaultType + "/personV2", v.getId().toString());
 
         //Case3 : Changing the type of the vertex
         //TODO : once set type is implemented will uncomment this code.
         //v.setType("person");
         //assertEquals("person/person2", v.getId().toString());
-
     }
 
     public void testBasicUgSetVertexProperties() {
         //Case1 : Vertex with valid id and property
-        Vertex v = graph.addVertex("person/person3");
+        Vertex v = graph.addVertex("person/personV3");
         v.setProperty("age",20);
-        assertEquals(20, v.getProperty("age"));
+        assertEquals(20,v.getProperty("age"));
 
         //setting multiple properties - float and string
         v.setProperty("weight", 97.5);
@@ -73,9 +72,22 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
 
     }
 
+    public void testGetEdgeforVertex(){
+        Vertex v1 = graph.addVertex("person/personV4");
+        v1.setProperty("age",20);
+        Vertex v2 = graph.addVertex("person/personV5");
+
+        Edge e = v1.addEdge("likes",v2);
+        Iterable<Edge> e1 = v1.getEdges(Direction.OUT,"likes");
+
+        assertEquals(e.getId(),e1.iterator().next().getId());
+
+    }
+
+
     public void testBasicUgAddEdge() {
         //Case1 : Edge with valid id
-        Vertex v1 = graph.addVertex("person/person4");
+        Vertex v1 = graph.addVertex("person/personE1");
         Vertex v2 = graph.addVertex("restaurants/Amici");
 
         Edge e1 = graph.addEdge(null, v1, v2, "likes");
@@ -94,15 +106,14 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
     }
 
     public void testUgEdge() {
-        Vertex v1 = graph.addVertex("person/person5");
+        Vertex v1 = graph.addVertex("person/personE2");
         Vertex v2 = graph.addVertex("restaurants/CheeseCakeFactory");
 
         Edge e4 = graph.addEdge(null, v1,v2,"likes");
         assertEquals(v1.getId()+"/likes/"+v2.getId(),e4.getId().toString());
-        assertEquals("person/person5",e4.getVertex(Direction.IN).getId());
-        assertEquals("restaurants/CheeseCakeFactory",e4.getVertex(Direction.OUT).getId());
+        assertEquals("person/personE2",e4.getVertex(Direction.OUT).getId());
+        assertEquals("restaurants/CheeseCakeFactory",e4.getVertex(Direction.IN).getId());
         assertEquals("likes",e4.getLabel());
-
     }
 
 
