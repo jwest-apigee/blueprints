@@ -1,10 +1,13 @@
 package org.apache.usergrid.drivers.blueprints;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.apache.log4j.Logger;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.entities.*;
+import org.apache.usergrid.java.client.response.ApiResponse;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,8 +17,10 @@ import java.util.UUID;
  */
 public class UsergridEdge extends Connection implements Edge {
 
+  private static final Logger log = Logger.getLogger(UsergridGraph.class);
 
-  public static final String ARROW_CONNECTOR = "-->";
+
+  public static final String CONNECTOR = "/";
   public static final String COLON = ":";
 
   public UsergridEdge(String outV, String inV, String label) {
@@ -24,6 +29,7 @@ public class UsergridEdge extends Connection implements Edge {
   }
 
   public void setLabel(String label) {
+    log.debug("DEBUG UsergridEdge setLabel() : Setting the label to : " + label );
     super.setLabel(label);
   }
 
@@ -37,7 +43,8 @@ public class UsergridEdge extends Connection implements Edge {
    */
   private void setId(Object sourceID, String label, Object targetId) {
     assertClientInitialized();
-    super.setConnectionID(sourceID + ARROW_CONNECTOR + label + ARROW_CONNECTOR + targetId);
+    log.debug("DEBUG UsergridEdge setId() : Setting the Connection Id to : " + label );
+    super.setConnectionID(sourceID + CONNECTOR + label + CONNECTOR + targetId);
   }
 
   /**
@@ -58,16 +65,14 @@ public class UsergridEdge extends Connection implements Edge {
 
 
   /**
-   * Return the label associated with the edge.
+   * Return the label associated with the edge. in the form SourceId/Label/TargetId
    *
    * @return
    */
   public String getLabel() {
-
     /*
     1. get the client connection. check if its initialized.
-    2. TODO: get the timestamp/label associated with the entity. // Confirm.
-     */
+    */
     return super.getLabel();
   }
 
@@ -82,25 +87,23 @@ public class UsergridEdge extends Connection implements Edge {
     3. delete the connection . check : disconnectEntities in client.java
      */
 
-    //TODO: validate the edge.
+    ValidationUtils.validateNotNull(this, RuntimeException.class, "The edge specified cannot be null");
     String edgeId = this.getId();
-    String[] properties = edgeId.split(ARROW_CONNECTOR);
-    String label = properties[1];
-    String[] source = properties[0].split(COLON);
-    String[] target = properties[2].split(COLON);
+    ValidationUtils.validateNotNull(this, RuntimeException.class, "The edge Id specified cannot be null");
+    String[] properties = edgeId.split(CONNECTOR);
+    if(properties.length == 5) {
+      UsergridVertex srcVertex = new UsergridVertex(properties[0]);
+      srcVertex.setUuid(UUID.fromString(properties[1]));
+      log.debug("DEBUG UsergridEdge remove() : source vertex id : " + srcVertex.getId());
 
-    UsergridVertex srcVertex = new UsergridVertex(source[0]);
-    srcVertex.setUuid(UUID.fromString(source[1]));
+      UsergridVertex trgVertex = new UsergridVertex(properties[3]);
+      trgVertex.setUuid(UUID.fromString(properties[4]));
+      log.debug("DEBUG UsergridEdge remove() : target vertex id : " + trgVertex.getId());
 
-    UsergridVertex trgVertex = new UsergridVertex(target[0]);
-    trgVertex.setUuid(UUID.fromString(target[1]));
-    UsergridGraph.client.disconnectEntities(srcVertex, trgVertex, label);
+    }
+    else
+      log.error("the edge passed has invalid Id");
   }
-
-  public void onChanged(Client client) {
-
-  }
-
 
   /**
    * Return the tail/out or head/in vertex.
@@ -110,7 +113,6 @@ public class UsergridEdge extends Connection implements Edge {
    * @throws IllegalArgumentException
    */
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-
     /*
     1. Check the client initialized.
     2. check the direction : IN -> connected entity , OUT -> connecting entity //TODO discuss : what if its BOTH. ?
@@ -124,9 +126,8 @@ public class UsergridEdge extends Connection implements Edge {
           //TODO : for BOTH
      */
 
-
     String edgeId = this.getId().toString();
-    String[] properties = ((String) edgeId).split(ARROW_CONNECTOR);
+    String[] properties = ((String) edgeId).split(CONNECTOR);
     String[] source = properties[0].split(COLON);
     String[] target = properties[2].split(COLON);
 
