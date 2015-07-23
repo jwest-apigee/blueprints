@@ -6,7 +6,7 @@
     import com.tinkerpop.blueprints.Vertex;
     import com.tinkerpop.blueprints.VertexQuery;
     import org.apache.usergrid.java.client.Client;
-    import org.apache.usergrid.java.client.entities.Entity;
+    import org.apache.usergrid.java.client.model.UsergridEntity;
     import org.apache.usergrid.java.client.response.ApiResponse;
 
     import java.io.IOException;
@@ -15,7 +15,7 @@
     /**
     * Created by ApigeeCorporation on 6/29/15.
     */
-    public class UsergridVertex extends Entity implements Vertex{
+    public class UsergridVertex extends UsergridEntity implements Vertex{
     private static String CONNECTIONING = "connecting" ;
     private static String defaultType;
     private static String METADATA = "metadata";
@@ -67,7 +67,7 @@
     ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
     ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
-    Entity trgUUID = response.getFirstEntity();
+    UsergridEntity trgUUID = response.getFirstEntity();
 
     switch (direction) {
         case OUT:
@@ -100,14 +100,14 @@
     return null;
     }
 
-    private boolean checkHasEdges(Entity trgUUID, String CONNECTIONS) {
+    private boolean checkHasEdges(UsergridEntity trgUUID, String CONNECTIONS) {
     if(trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS) == null)
     return false;
     else
     return true;
     }
 
-    private void IterarteOverEdges(Entity trgUUID, String srcType, String srcId, List<Edge> edges, String conn) {
+    private void IterarteOverEdges(UsergridEntity trgUUID, String srcType, String srcId, List<Edge> edges, String conn) {
     Iterator<String> connections = trgUUID.getProperties().get(METADATA).findValue(conn).fieldNames();
     Direction direction = null;
     while (connections.hasNext()){
@@ -122,14 +122,14 @@
      resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, name);
      direction = Direction.IN;
     }
-    List<Entity> entities = resp.getEntities();
+    List<UsergridEntity> entities = resp.getEntities();
     edges = getAllEdgesForVertex(entities, name, edges,direction);
     }
     }
 
-    private List<Edge> getAllEdgesForVertex(List<Entity> entities, String name,List<Edge> edges, Direction dir) {
+    private List<Edge> getAllEdgesForVertex(List<UsergridEntity> entities, String name,List<Edge> edges, Direction dir) {
     for (int i = 0; i < entities.size(); i++) {
-    Entity e = entities.get(i);
+        UsergridEntity e = entities.get(i);
     String v = e.getType() + SLASH + e.getStringProperty("name");
     Edge e1 = null;
     if (dir == Direction.OUT)
@@ -197,7 +197,7 @@
 
     //TODO: What happens when an edge between two vertices already exists? Return the existing edge?
     ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
-    ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
+    ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
     ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
     ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
     ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
@@ -261,7 +261,7 @@
     */
     public void setLocalProperty(String key, Object value) {
 
-    ValidationUtils.validateNotNull(key,RuntimeException.class, "Key for the property cannot be null");
+    ValidationUtils.validateNotNull(key, RuntimeException.class, "Key for the property cannot be null");
 
     ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
 
