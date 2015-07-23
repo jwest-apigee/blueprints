@@ -89,6 +89,10 @@ public class AppTest {
     Edge e3 = person1.addEdge("likes", restaurant1);
     System.out.println("Edge3 id : " + e3.getId());
 
+    Edge e4 = restaurant1.addEdge("visitedBy", person1);
+    System.out.println("Edge4 id : " + e4.getId());
+
+
 
     System.out.println();
     System.out.println("Getting An EDGE");
@@ -112,6 +116,14 @@ public class AppTest {
     Iterable<Edge> edgesIn = restaurant1.getEdges(Direction.IN);
     if (edgesIn != null) {
       for (Edge each : edgesIn) {
+        System.out.println("in test app : " + each.getId());
+      }
+    }
+
+    System.out.println("Getting both EDGES");
+    Iterable<Edge> edgesInOut = person1.getEdges(Direction.BOTH);
+    if (edgesInOut != null) {
+      for (Edge each : edgesInOut) {
         System.out.println("in test app : " + each.getId());
       }
     }

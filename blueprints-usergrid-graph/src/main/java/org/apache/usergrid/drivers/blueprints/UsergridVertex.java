@@ -55,8 +55,10 @@
 
     String srcType = this.getType();
     String srcId = this.getUuid().toString();
-    List<Edge> edges = new ArrayList<Edge>();
-    ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+    List<Edge> edgesSet1 = new ArrayList<Edge>();
+        List<Edge> edgesSet2 = new ArrayList<Edge>();
+
+        ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
 
     ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
     ValidationUtils.validateAccess(response,RuntimeException.class,"User forbidden from using the Usergrid resource");
@@ -66,21 +68,33 @@
 
     Entity trgUUID = response.getFirstEntity();
 
-    switch (direction){
-    case  OUT:
-    if(!checkHasEdges(trgUUID,CONNECTIONS)){
-      return null;
-    }
-    IterarteOverEdges(trgUUID,srcType,srcId,edges,CONNECTIONS);
-    return edges;
+    switch (direction) {
+        case OUT:
+            if (!checkHasEdges(trgUUID, CONNECTIONS)) {
+                return null;
+            }
+            IterarteOverEdges(trgUUID, srcType, srcId, edgesSet1, CONNECTIONS);
+            return edgesSet1;
 
-    case  IN:
-    if(!checkHasEdges(trgUUID,CONNECTIONING)){
-      return null;
+        case IN:
+            if (!checkHasEdges(trgUUID, CONNECTIONING)) {
+                return null;
+            }
+            IterarteOverEdges(trgUUID, srcType, srcId, edgesSet2, CONNECTIONING);
+            return edgesSet2;
+        case BOTH:
+            if (!checkHasEdges(trgUUID, CONNECTIONS)) {
+                return null;
+            }
+            if (!checkHasEdges(trgUUID, CONNECTIONING)) {
+                return null;
+            }
+            IterarteOverEdges(trgUUID, srcType, srcId, edgesSet1, CONNECTIONS);
+            IterarteOverEdges(trgUUID, srcType, srcId, edgesSet2, CONNECTIONING);
+            edgesSet1.addAll(edgesSet2);
+            return edgesSet1;
     }
-    IterarteOverEdges(trgUUID,srcType,srcId,edges,CONNECTIONING);
-    return edges;
-    }
+
 
     return null;
     }
