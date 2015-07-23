@@ -434,9 +434,49 @@ public class UsergridGraph implements Graph {
      * @return
      */
 
+        public Iterable<Vertex> getVertices() {
+            // need to be able to page
+            Map<String, Object> paramsMap = new HashMap<String, Object>();
+            paramsMap.put("limit",entityRetrivalCount);
+            paramsMap.put("cursor",null);
+            List<Vertex> allVertices = new ArrayList<Vertex>();
+            ApiResponse response = client.queryCollections();
+            Iterator<Map.Entry<String, JsonNode>> collectionList = response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
+            while(collectionList.hasNext()){
+                Map.Entry<String, JsonNode> collection = collectionList.next();
+                String collectionName = collection.getKey();
+                System.out.println(collectionName);
+                //TODO : exclude "roles" entity.
+                if(collectionName != "roles") {
+                    ApiResponse responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+                    AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+                    System.out.println("cursor: " + responseEntities.getCursor());
+                    while (responseEntities.getCursor() != null) {
+                        paramsMap.put("cursor", responseEntities.getCursor());
+                        responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+                        System.out.println(responseEntities);
+                        AddEntitiesIntoEntitiesArray(response.getEntities(), allVertices);
+                        paramsMap.put("cursor", responseEntities.getCursor());
+                    }
+                }
+            }
+            return  allVertices;
+//        throw new UnsupportedOperationException("Not Supported in Usergris");
+        }
 
-    public Iterable<Vertex> getVertices() {
-     throw new UnsupportedOperationException("Not Supported in Usergris");
+
+    private void AddEntitiesIntoEntitiesArray(List<Entity> entities, List<Vertex> allVertices) {
+        Integer next = 0;
+        if (entities.size() == 0){
+            return;
+        }
+        while (entities.size() > next){
+            String type = entities.get(next).getType();
+            String name = entities.get(next).getStringProperty("name");
+            Vertex ugvertex = getVertex(type + "/" + name);
+            allVertices.add(ugvertex);
+            next++;
+        }
     }
 
 
