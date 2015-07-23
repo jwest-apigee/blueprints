@@ -21,6 +21,7 @@
     private static String METADATA = "metadata";
     private static String CONNECTIONS = "connections";
     public static final String SLASH = "/";
+    public static String STRING_NAME = "name";
 
 
 
@@ -317,22 +318,15 @@
     public Object getId() {
     String ObjectType = this.getType();
     UUID ObjectUUID = this.getUuid();
-    String id = ObjectType + SLASH + this.getProperty("name");
+    String id;
+    if (this.getProperty(STRING_NAME)!= null) {
+        id = ObjectType + SLASH + this.getProperty(STRING_NAME);
+    }
+        else {
+        id = ObjectType + SLASH + ObjectUUID;
+    }
     return id;
 
     }
 
-    /**
-    * This sets the type of vertex (the collection)
-    *
-    * @param newType
-    */
-    @Override
-    public void setType(String newType) {
-    if (newType.equals(super.getType())) {
-    //Do nothing
-    } else {
-    super.setType(newType);
-    }
-    }
     }
