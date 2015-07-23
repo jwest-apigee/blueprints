@@ -270,7 +270,7 @@ public class UsergridGraph implements Graph {
     */
 
         assertClientInitialized();
-        ValidationUtils.validateNotNull(id, RuntimeException.class, "id cannot be of type null");
+
         String[] parts = new String[2];
         String VertexType = null;
         String VertexName = null;
@@ -283,17 +283,29 @@ public class UsergridGraph implements Graph {
                 VertexType = parts[0];
                 VertexName = parts[1];
                 v = new UsergridVertex(VertexType);
+                v.setLocalProperty(STRING_NAME, VertexName);
+                v.setLocalProperty("_ugName", VertexName);
+                v.setLocalProperty("_ugBlueprintsId", id);
             }
             else{
                 v = new UsergridVertex(defaultType);
                 VertexName = id.toString();
+                v.setLocalProperty(STRING_NAME, VertexName);
+                v.setLocalProperty("_ugName", VertexName);
+                v.setLocalProperty("_ugBlueprintsId", id);
             }
 
-        } else if ((id instanceof Object)) {
+        } else if (id instanceof Object) {
             log.debug("DEBUG addVertex(): id passed is an instance of object ");
             v = new UsergridVertex(defaultType);
             VertexName = id.toString();
+            v.setLocalProperty(STRING_NAME, VertexName);
+            v.setLocalProperty("_ugName", VertexName);
+            v.setLocalProperty("_ugBlueprintsId", id);
 
+        }
+        else if (id == null){
+            v = new UsergridVertex(defaultType);
         }
         else
         {
@@ -301,9 +313,7 @@ public class UsergridGraph implements Graph {
             throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
         }
 
-        v.setLocalProperty(STRING_NAME, VertexName);
-        v.setLocalProperty("_ugName", VertexName);
-        v.setLocalProperty("_ugBlueprintsId", id);
+
         ApiResponse response = client.createEntity(v);
         log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
 
@@ -368,7 +378,7 @@ public class UsergridGraph implements Graph {
                 Object value = entry.getValue();
                 v.setLocalProperty(key, value);
 
-                log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
+                log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty(STRING_NAME) + "' got are : " + v.getProperties());
                 log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
                 return v;
             }
