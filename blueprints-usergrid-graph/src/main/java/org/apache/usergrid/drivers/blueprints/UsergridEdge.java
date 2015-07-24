@@ -5,9 +5,10 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.log4j.Logger;
-import org.apache.usergrid.java.client.SingletonClient;
-import org.apache.usergrid.java.client.entities.Connection;
+import org.apache.usergrid.java.client.Usergrid;
+import org.apache.usergrid.java.client.model.Connection;
 import org.apache.usergrid.java.client.response.ApiResponse;
+import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +56,7 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * should return the Id for the given edge. <sourecetype:uuid>/<label>/<targettype:uuid>
    *
-   * @return
+   * @return : string - the id of the edge.
    */
   public String getId() {
     /*
@@ -72,7 +73,7 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * Return the label associated with the edge. in the form SourceId/Label/TargetId
    *
-   * @return
+   * @return - the name of the edge.
    */
   public String getLabel() {
     /*
@@ -94,17 +95,19 @@ public class UsergridEdge extends Connection implements Edge {
 
     ValidationUtils.validateNotNull(this, RuntimeException.class, "The edge specified cannot be null");
     String edgeId = this.getId();
-    ValidationUtils.validateNotNull(this, RuntimeException.class, "The edge Id specified cannot be null");
+    ValidationUtils.validateNotNull(edgeId, RuntimeException.class, "The edge Id specified cannot be null");
     String[] properties = edgeId.split(CONNECTOR);
     if(properties.length == 5) {
-      UsergridVertex srcVertex = new UsergridVertex(properties[0]);
-      srcVertex.setUuid(UUID.fromString(properties[1]));
-      log.debug("DEBUG UsergridEdge remove() : source vertex id : " + srcVertex.getId());
+//      UsergridVertex srcVertex = new UsergridVertex(properties[0]);
+//      srcVertex.setUuid(UUID.fromString(properties[1]));
+//      log.debug("DEBUG UsergridEdge remove() : source vertex id : " + srcVertex.getId());
+//
+//      UsergridVertex trgVertex = new UsergridVertex(properties[3]);
+//      trgVertex.setUuid(UUID.fromString(properties[4]));
+//      log.debug("DEBUG UsergridEdge remove() : target vertex id : " + trgVertex.getId());
 
-      UsergridVertex trgVertex = new UsergridVertex(properties[3]);
-      trgVertex.setUuid(UUID.fromString(properties[4]));
-      log.debug("DEBUG UsergridEdge remove() : target vertex id : " + trgVertex.getId());
-
+      String[] urlparams = {UsergridGraph.client.getOrganizationId(),UsergridGraph.client.getApplicationId(),properties[0],properties[1],properties[2],properties[3],properties[4]};
+      UsergridGraph.client.apiRequest("DELETE",null,null,urlparams);
     }
     else
       log.error("the edge passed has invalid Id");
@@ -114,7 +117,7 @@ public class UsergridEdge extends Connection implements Edge {
    * Return the tail/out or head/in vertex.
    *
    * @param direction
-   * @return
+   * @return the vertex
    * @throws IllegalArgumentException
    */
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
@@ -136,11 +139,11 @@ public class UsergridEdge extends Connection implements Edge {
     String[] properties = ((String) edgeId).split(CONNECTOR);
     ApiResponse response = null;
     if (direction == Direction.OUT) {
-       response = SingletonClient.getInstance().queryEntity(properties[0], properties[1]);
+       response = UsergridGraph.client.getEntity(properties[0], properties[1]);
       type = properties[0];
       log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     } else if (direction == Direction.IN) {
-       response = SingletonClient.getInstance().queryEntity(properties[3], properties[4]);
+       response = UsergridGraph.client.getEntity(properties[3], properties[4]);
       type = properties[3];
       log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     }

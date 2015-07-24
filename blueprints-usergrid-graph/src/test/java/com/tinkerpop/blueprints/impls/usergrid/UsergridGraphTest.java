@@ -22,22 +22,24 @@ public class UsergridGraphTest extends GraphTest {
 
     @Override
     public Graph generateGraph(String s) {
-        PropertiesConfiguration conf = null;
-        try {
-            conf = new PropertiesConfiguration(s);
-        } catch (ConfigurationException e) {
-            e.printStackTrace();
-        }
-        UsergridGraph graph = new UsergridGraph(conf);
-        return graph;
+//        PropertiesConfiguration conf = null;
+//        try {
+//            conf = new PropertiesConfiguration(s);
+//        } catch (ConfigurationException e) {
+//            e.printStackTrace();
+//        }
+//        UsergridGraph graph = new UsergridGraph(conf);
+//        return graph;
+        Graph usergridgraph = GraphFactory.open(s);
+        return usergridgraph;
     }
 
 
-    public void testVertexTestSuite() throws Exception {
-        this.stopWatch();
-        doTestSuite(new VertexTestSuite(this));
-        printTestPerformance("VertexTestSuite", this.stopWatch());
-    }
+//    public void testVertexTestSuite() throws Exception {
+//        this.stopWatch();
+//        doTestSuite(new VertexTestSuite(this));
+//        printTestPerformance("VertexTestSuite", this.stopWatch());
+//    }
 
     public void testEdgeTestSuite() throws Exception {
         this.stopWatch();
@@ -59,7 +61,8 @@ public class UsergridGraphTest extends GraphTest {
                 System.out.println("Testing " + method.getName() + "...");
                 Graph graph = this.generateGraph();
                 method.invoke(testSuite);
-                graph.shutdown();
+                System.out.println("exectuted tests for : " + method.getName());
+                //graph.shutdown();
             }
         }
     }
