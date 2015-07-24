@@ -4,9 +4,8 @@ package org.apache.usergrid.drivers.blueprints;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.Configuration;
-import org.apache.usergrid.java.client.Client;
-import org.apache.usergrid.java.client.SingletonClient;
-import org.apache.usergrid.java.client.entities.Entity;
+import org.apache.usergrid.java.client.Usergrid;
+import org.apache.usergrid.java.client.model.UsergridEntity;
 import org.apache.usergrid.java.client.response.ApiResponse;
 import org.springframework.http.HttpMethod;
 
@@ -22,7 +21,7 @@ import org.apache.log4j.Logger;
 public class UsergridGraph implements Graph {
 
     private static final int COUNT = 0;
-    public static Client client;
+    public static Usergrid client;
     private static String defaultType;
     private static int entityRetrivalCount;
 
@@ -177,7 +176,7 @@ public class UsergridGraph implements Graph {
         /**
          * Does the graph support setting and retrieving properties on vertices?
          */
-        features.supportsVertexProperties = Boolean.TRUE;
+        features.supportsVertexProperties = Boolean.FALSE;
 
         /**
          * Does the graph support setting and retrieving properties on edges?
@@ -227,13 +226,13 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateStringNotEmpty(appName, RuntimeException.class, "Application name cannot be empty in Usergrid");
 
         if (apiUrl == null)
-            SingletonClient.initialize(orgName, appName);
+            Usergrid.initialize(apiUrl,orgName, appName);
         else
-            SingletonClient.initialize(apiUrl, orgName, appName);
+            Usergrid.initialize(apiUrl, orgName, appName);
         log.debug("UsergridGraph() : Initializing the SingletonClient");
 
         //Get an instance of the client
-        client = SingletonClient.getInstance();
+        client = Usergrid.getInstance();
         ValidationUtils.validateNotNull(client, RuntimeException.class, "Client could not be instantiated.");
 
         //Authorize the Application with the credentials provided in the Configuration file
@@ -359,7 +358,7 @@ public class UsergridGraph implements Graph {
             String[] parts = id.toString().split(SLASH);
             String type = parts[0];
             String StringUUID = parts[1];
-            ApiResponse response = SingletonClient.getInstance().queryEntity(type, StringUUID);
+            ApiResponse response = client.getEntity(type, StringUUID);
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
 
             ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
@@ -409,7 +408,7 @@ public class UsergridGraph implements Graph {
         String[] parts = id.split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
-        ApiResponse response = SingletonClient.getInstance().deleteEntity(type, StringUUID);
+        ApiResponse response = client.deleteEntity(type, StringUUID);
         log.debug("DEBUG removeVertex(): Api response returned for remove vertex is : " + response);
 
         ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
@@ -444,9 +443,49 @@ public class UsergridGraph implements Graph {
      * @return
      */
 
+        public Iterable<Vertex> getVertices() {
+//            // need to be able to page
+//            Map<String, Object> paramsMap = new HashMap<String, Object>();
+//            paramsMap.put("limit",entityRetrivalCount);
+//            paramsMap.put("cursor",null);
+//            List<Vertex> allVertices = new ArrayList<Vertex>();
+//            ApiResponse response = client.queryCollections();
+//            Iterator<Map.Entry<String, JsonNode>> collectionList = response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
+//            while(collectionList.hasNext()){
+//                Map.Entry<String, JsonNode> collection = collectionList.next();
+//                String collectionName = collection.getKey();
+//                System.out.println(collectionName);
+//                //TODO : exclude "roles" entity.
+//                if(collectionName != "roles") {
+//                    ApiResponse responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+//                    AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+//                    System.out.println("cursor: " + responseEntities.getCursor());
+//                    while (responseEntities.getCursor() != null) {
+//                        paramsMap.put("cursor", responseEntities.getCursor());
+//                        responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+//                        System.out.println(responseEntities);
+//                        AddEntitiesIntoEntitiesArray(response.getEntities(), allVertices);
+//                        paramsMap.put("cursor", responseEntities.getCursor());
+//                    }
+//                }
+//            }
+//            return  allVertices;
+        throw new UnsupportedOperationException("Not Supported in Usergris");
+        }
 
-    public Iterable<Vertex> getVertices() {
-     throw new UnsupportedOperationException("Not Supported in Usergris");
+
+    private void AddEntitiesIntoEntitiesArray(List<UsergridEntity> entities, List<Vertex> allVertices) {
+        Integer next = 0;
+        if (entities.size() == 0){
+            return;
+        }
+        while (entities.size() > next){
+            String type = entities.get(next).getType();
+            String name = entities.get(next).getStringProperty("name");
+            Vertex ugvertex = getVertex(type + "/" + name);
+            allVertices.add(ugvertex);
+            next++;
+        }
     }
 
 
@@ -519,7 +558,7 @@ public class UsergridGraph implements Graph {
             String label = properties[2];
 
             //Check if the edge is valid.
-            ApiResponse response = client.apiRequest(HttpMethod.GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            ApiResponse response = client.apiRequest("GET", null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
             if(response.getError() != null){
 //                log.error("The get requested does not exists in the database.");
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
@@ -531,7 +570,7 @@ public class UsergridGraph implements Graph {
             Vertex trgVertex = getVertex(properties[3] + "/" + properties[4]);
             log.debug("DEBUG getEdge(): target vertex returned with id : " + trgVertex.getId());
 
-            client.queryConnection(properties[0], properties[1], label, properties[3], properties[4]);
+            client.queryConnection(properties);
             Edge connection = new UsergridEdge(srcVertex.getId().toString(), trgVertex.getId().toString(), label);
             log.debug("DEBUG addEdge(): Returning Edge with id : " + connection.getId());
 
