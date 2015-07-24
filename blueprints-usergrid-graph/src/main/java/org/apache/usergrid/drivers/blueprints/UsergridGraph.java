@@ -4,7 +4,6 @@ package org.apache.usergrid.drivers.blueprints;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.Configuration;
-import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.Usergrid;
 import org.apache.usergrid.java.client.model.UsergridEntity;
 import org.apache.usergrid.java.client.response.ApiResponse;
@@ -22,7 +21,7 @@ import org.apache.log4j.Logger;
 public class UsergridGraph implements Graph {
 
     private static final int COUNT = 0;
-    public static Client client;
+    public static Usergrid client;
     private static String defaultType;
     private static int entityRetrivalCount;
 
@@ -227,7 +226,7 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateStringNotEmpty(appName, RuntimeException.class, "Application name cannot be empty in Usergrid");
 
         if (apiUrl == null)
-            Usergrid.initialize(orgName, appName);
+            Usergrid.initialize(apiUrl,orgName, appName);
         else
             Usergrid.initialize(apiUrl, orgName, appName);
         log.debug("UsergridGraph() : Initializing the SingletonClient");
@@ -359,7 +358,7 @@ public class UsergridGraph implements Graph {
             String[] parts = id.toString().split(SLASH);
             String type = parts[0];
             String StringUUID = parts[1];
-            ApiResponse response = client.queryEntity(type, StringUUID);
+            ApiResponse response = client.getEntity(type, StringUUID);
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
 
             ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
@@ -445,33 +444,33 @@ public class UsergridGraph implements Graph {
      */
 
         public Iterable<Vertex> getVertices() {
-            // need to be able to page
-            Map<String, Object> paramsMap = new HashMap<String, Object>();
-            paramsMap.put("limit",entityRetrivalCount);
-            paramsMap.put("cursor",null);
-            List<Vertex> allVertices = new ArrayList<Vertex>();
-            ApiResponse response = client.queryCollections();
-            Iterator<Map.Entry<String, JsonNode>> collectionList = response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
-            while(collectionList.hasNext()){
-                Map.Entry<String, JsonNode> collection = collectionList.next();
-                String collectionName = collection.getKey();
-                System.out.println(collectionName);
-                //TODO : exclude "roles" entity.
-                if(collectionName != "roles") {
-                    ApiResponse responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-                    AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-                    System.out.println("cursor: " + responseEntities.getCursor());
-                    while (responseEntities.getCursor() != null) {
-                        paramsMap.put("cursor", responseEntities.getCursor());
-                        responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-                        System.out.println(responseEntities);
-                        AddEntitiesIntoEntitiesArray(response.getEntities(), allVertices);
-                        paramsMap.put("cursor", responseEntities.getCursor());
-                    }
-                }
-            }
-            return  allVertices;
-//        throw new UnsupportedOperationException("Not Supported in Usergris");
+//            // need to be able to page
+//            Map<String, Object> paramsMap = new HashMap<String, Object>();
+//            paramsMap.put("limit",entityRetrivalCount);
+//            paramsMap.put("cursor",null);
+//            List<Vertex> allVertices = new ArrayList<Vertex>();
+//            ApiResponse response = client.queryCollections();
+//            Iterator<Map.Entry<String, JsonNode>> collectionList = response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
+//            while(collectionList.hasNext()){
+//                Map.Entry<String, JsonNode> collection = collectionList.next();
+//                String collectionName = collection.getKey();
+//                System.out.println(collectionName);
+//                //TODO : exclude "roles" entity.
+//                if(collectionName != "roles") {
+//                    ApiResponse responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+//                    AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+//                    System.out.println("cursor: " + responseEntities.getCursor());
+//                    while (responseEntities.getCursor() != null) {
+//                        paramsMap.put("cursor", responseEntities.getCursor());
+//                        responseEntities = client.apiRequest(HttpMethod.GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+//                        System.out.println(responseEntities);
+//                        AddEntitiesIntoEntitiesArray(response.getEntities(), allVertices);
+//                        paramsMap.put("cursor", responseEntities.getCursor());
+//                    }
+//                }
+//            }
+//            return  allVertices;
+        throw new UnsupportedOperationException("Not Supported in Usergris");
         }
 
 
@@ -559,7 +558,7 @@ public class UsergridGraph implements Graph {
             String label = properties[2];
 
             //Check if the edge is valid.
-            ApiResponse response = client.apiRequest(HttpMethod.GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            ApiResponse response = client.apiRequest("GET", null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
             if(response.getError() != null){
 //                log.error("The get requested does not exists in the database.");
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");

@@ -16,10 +16,11 @@ import java.util.UUID;
  */
 public class AppTest {
 
-
+  static String filePath = "blueprints-usergrid-graph/src/main/resources/usergrid.properties";
+//    static String filePath = "/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties";
   public static void main(String[] args) {
 
-    Graph usergrid = GraphFactory.open("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+    Graph usergrid = GraphFactory.open(filePath);
 
 //    Iterable allvertices = usergrid.getVertices();
 //    System.out.println(allvertices);

@@ -107,7 +107,7 @@ public class UsergridEdge extends Connection implements Edge {
 //      log.debug("DEBUG UsergridEdge remove() : target vertex id : " + trgVertex.getId());
 
       String[] urlparams = {UsergridGraph.client.getOrganizationId(),UsergridGraph.client.getApplicationId(),properties[0],properties[1],properties[2],properties[3],properties[4]};
-      UsergridGraph.client.apiRequest(HttpMethod.DELETE,null,null,urlparams);
+      UsergridGraph.client.apiRequest("DELETE",null,null,urlparams);
     }
     else
       log.error("the edge passed has invalid Id");
@@ -139,11 +139,11 @@ public class UsergridEdge extends Connection implements Edge {
     String[] properties = ((String) edgeId).split(CONNECTOR);
     ApiResponse response = null;
     if (direction == Direction.OUT) {
-       response = UsergridGraph.client.queryEntity(properties[0], properties[1]);
+       response = UsergridGraph.client.getEntity(properties[0], properties[1]);
       type = properties[0];
       log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     } else if (direction == Direction.IN) {
-       response = UsergridGraph.client.queryEntity(properties[3], properties[4]);
+       response = UsergridGraph.client.getEntity(properties[3], properties[4]);
       type = properties[3];
       log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     }
