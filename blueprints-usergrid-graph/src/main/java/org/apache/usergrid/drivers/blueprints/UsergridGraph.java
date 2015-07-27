@@ -33,7 +33,7 @@ public class UsergridGraph implements Graph {
     public static final String SLASH = "/";
     public static final String STRING_UUID = "uuid";
     public static final String STRING_NAME = "name";
-
+    public static final String STRING_TYPE = "type";
     public static final String CONNECTOR = "/";
     private static Features features;
 
@@ -294,18 +294,21 @@ public class UsergridGraph implements Graph {
             }
 
         } else if (id instanceof Object) {
-            log.debug("DEBUG addVertex(): id passed is an instance of object ");
-            v = new UsergridVertex(defaultType);
-            VertexName = id.toString();
-            v.setLocalProperty(STRING_NAME, VertexName);
-            v.setLocalProperty("_ugName", VertexName);
-            v.setLocalProperty("_ugBlueprintsId", id);
+        log.debug("DEBUG addVertex(): id passed is an instance of object ");
+        v = new UsergridVertex(defaultType);
+        VertexName = id.toString();
+        v.setLocalProperty(STRING_NAME, VertexName);
+        v.setLocalProperty("_ugName", VertexName);
+        v.setLocalProperty("_ugBlueprintsId", id);
 
-        } else if (id == null) {
-            v = new UsergridVertex(defaultType);
-        } else {
-            log.error("ERROR addVertex(): id passed is in an invalid format.");
-            throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        }
+        else if (id == null){
+        v = new UsergridVertex(defaultType);
+        }
+        else
+        {
+        log.error("ERROR addVertex(): id passed is in an invalid format.");
+        throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
         }
 
 
