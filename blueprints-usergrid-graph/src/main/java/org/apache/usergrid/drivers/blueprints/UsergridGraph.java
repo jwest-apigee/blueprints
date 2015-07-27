@@ -315,6 +315,7 @@ public class UsergridGraph implements Graph {
 
 
         ApiResponse response = client.createEntity(v);
+
         log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
 
         ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
