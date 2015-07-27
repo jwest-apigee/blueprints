@@ -43,6 +43,7 @@ public class AppTest {
     Vertex restaurant2 = usergrid.addVertex("restaurant/CPK");
     System.out.println("id restaurant2 :: " + restaurant2.getId());
 
+
     System.out.println("Checking if default object is created, when ObjectID is passed");
     Vertex object1 = usergrid.addVertex(123);
     System.out.println("id object1 :: " + object1.getId());
@@ -50,6 +51,20 @@ public class AppTest {
     System.out.println("Checking if default object is created, when random String is passed");
     Vertex object2 = usergrid.addVertex("Betty");
     System.out.println("id object1 :: " + object2.getId());
+
+
+    System.out.println("Checking if default object is created, when object ID is null");
+    Vertex object3 = usergrid.addVertex(null);
+    System.out.println("id object3 :: " + object3.getId());
+
+    System.out.println("Checking change of Type for a vertex with incoming and outgoing edges");
+    object3.setProperty("name", "Object3toPerson");
+    object3.addEdge("likes", restaurant1);
+    restaurant2.addEdge("advertisesTo", object3);
+    object3.setProperty("type", "person");
+    System.out.println(object3);
+    System.out.println("Has edges"+object3.getEdges(Direction.IN,"advertisesTo") + object3.getEdges(Direction.OUT,"likes"));
+
 
     System.out.println();
     System.out.println("Getting VERTICES");
@@ -136,6 +151,7 @@ public class AppTest {
         System.out.println("in test app : " + each.getId());
       }
     }
+
 
 //    System.out.println("Deleting EDGES");
 //
