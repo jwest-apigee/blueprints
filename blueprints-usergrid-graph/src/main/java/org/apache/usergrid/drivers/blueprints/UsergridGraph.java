@@ -7,9 +7,6 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Usergrid;
 import org.apache.usergrid.java.client.model.UsergridEntity;
 import org.apache.usergrid.java.client.response.ApiResponse;
-import org.springframework.http.HttpMethod;
-
-import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,6 +25,7 @@ public class UsergridGraph implements Graph {
 
     private static String METADATA = "metadata";
     private static String COLLECTIONS = "collections";
+    private static String ROLES = "roles";
     private static final Logger log = Logger.getLogger(UsergridGraph.class);
 
     public static final String SLASH = "/";
@@ -440,39 +438,49 @@ public class UsergridGraph implements Graph {
      */
 
     public Iterable<Vertex> getVertices() {
-        // need to be able to page
         Map<String, Object> paramsMap = new HashMap<String, Object>();
         paramsMap.put("limit", entityRetrivalCount);
-        //paramsMap.put("cursor",null);
         List<Vertex> allVertices = new ArrayList<Vertex>();
-        ApiResponse response = client.queryCollections();
-        Iterator<Map.Entry<String, JsonNode>> collectionList = response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
+        Iterator<Map.Entry<String, JsonNode>> collectionList;
+        Map.Entry<String, JsonNode> collection;
+        String collectionName;
+        collectionList = getAllCollections();
+
         while (collectionList.hasNext()) {
-            Map.Entry<String, JsonNode> collection = collectionList.next();
-            String collectionName = collection.getKey();
-            System.out.println(collectionName);
-            //TODO : exclude "roles" entity.
-            if (collectionName != "roles") {
-                ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-                AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-                System.out.println("cursor: " + responseEntities.getCursor());
-                while (responseEntities.getCursor() != null) {
-                    paramsMap.put("cursor", responseEntities.getCursor());
-                    responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-                    System.out.println(responseEntities);
-                    AddEntitiesIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-                    paramsMap.put("cursor", responseEntities.getCursor());
-                }
+            collection = collectionList.next();
+            collectionName = collection.getKey();
+            //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
+            if (collectionName != ROLES)
+            {
+                allVertices.addAll(GetVerticesForCollection(collectionName,paramsMap));
             }
         }
         return allVertices;
     }
 
+    private List<Vertex> GetVerticesForCollection(String collectionName, Map<String, Object> paramsMap) {
+        List<Vertex> allVertices =  new ArrayList<Vertex>();
+        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+        while (responseEntities.getCursor() != null) {
+            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+            paramsMap.put("cursor", responseEntities.getCursor());
+        }
+        return allVertices;
+    }
 
-    private void AddEntitiesIntoEntitiesArray(List<UsergridEntity> entities, List<Vertex> allVertices) {
+    private Iterator<Map.Entry<String, JsonNode>> getAllCollections() {
+        ApiResponse response = client.queryCollections();
+        return response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
+    }
+
+
+    private List<Vertex> AddIntoEntitiesArray(List<UsergridEntity> entities, List<Vertex> allVertices) {
+
         Integer next = 0;
         if (entities.size() == 0) {
-            return;
+            return null;
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
@@ -481,6 +489,7 @@ public class UsergridGraph implements Graph {
             allVertices.add(ugvertex);
             next++;
         }
+        return allVertices;
     }
 
 
@@ -629,8 +638,63 @@ public class UsergridGraph implements Graph {
      */
 
     public Iterable<Edge> getEdges() {
-        throw new UnsupportedOperationException("Not supported for Usergrid");
+
+        Map<String, Object> paramsMap = new HashMap<String, Object>();
+        paramsMap.put("limit", entityRetrivalCount);
+        List<Edge> allVertices = new ArrayList<Edge>();
+        Iterator<Map.Entry<String, JsonNode>> collectionList;
+        Map.Entry<String, JsonNode> collection;
+        String collectionName;
+        collectionList = getAllCollections();
+
+        while (collectionList.hasNext()) {
+            collection = collectionList.next();
+            collectionName = collection.getKey();
+            //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
+            if (collectionName != ROLES)
+            {
+                allVertices.addAll(GetEdgesForCollection(collectionName, paramsMap));
+            }
+        }
+        return allVertices;
+
+
+//        throw new UnsupportedOperationException("Not supported for Usergrid");
     }
+
+
+    private List<Edge> GetEdgesForCollection(String collectionName, Map<String, Object> paramsMap) {
+        List<Edge> allEdges =  new ArrayList<Edge>();
+        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
+        while (responseEntities.getCursor() != null) {
+            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
+            paramsMap.put("cursor", responseEntities.getCursor());
+        }
+        return allEdges;
+    }
+
+    private List<Edge> AddIntoEdgesArray(List<UsergridEntity> entities, List<Edge> allEdges) {
+
+        Integer next = 0;
+        if (entities.size() == 0) {
+            return null;
+        }
+        while (entities.size() > next) {
+            String type = entities.get(next).getType();
+            String name = entities.get(next).getStringProperty("name");
+            Vertex ugvertex = getVertex(type + "/" + name);
+            Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
+            if (edges != null) {
+                for (Edge edge : edges)
+                    allEdges.add(edge);
+            }
+            next++;
+        }
+        return allEdges;
+    }
+
 
 
     /**

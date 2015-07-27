@@ -22,8 +22,16 @@ public class AppTest {
 
     Graph usergrid = GraphFactory.open(filePath);
 
-    Iterable allvertices = usergrid.getVertices();
-    System.out.println(allvertices);
+    Iterable<Vertex> allvertices = usergrid.getVertices();
+    for (Vertex vertex : allvertices) {
+      System.out.println("inside all vertices certex id  : " + vertex.getId());
+    }
+
+
+    Iterable<Edge> allEdges = usergrid.getEdges();
+    for (Edge edge : allEdges) {
+      System.out.println("inside all edges edges id  : " + edge.getId());
+    }
 
     System.out.println("Creating VERTICES");
     Vertex person1 = usergrid.addVertex("person/Anne");
