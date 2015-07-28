@@ -93,9 +93,9 @@ public class UsergridEdge extends Connection implements Edge {
     3. delete the connection . check : disconnectEntities in client.java
      */
 
-    ValidationUtils.validateNotNull(this, RuntimeException.class, "The edge specified cannot be null");
+    ValidationUtils.validateNotNull(this, IllegalArgumentException.class, "The edge specified cannot be null");
     String edgeId = this.getId();
-    ValidationUtils.validateNotNull(edgeId, RuntimeException.class, "The edge Id specified cannot be null");
+    ValidationUtils.validateNotNull(edgeId, IllegalArgumentException.class, "The edge Id specified cannot be null");
     String[] properties = edgeId.split(CONNECTOR);
     if(properties.length == 5) {
 //      UsergridVertex srcVertex = new UsergridVertex(properties[0]);

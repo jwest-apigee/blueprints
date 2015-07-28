@@ -52,8 +52,8 @@
     3) Return an iterable of edges
     */
 
-    ValidationUtils.validateNotNull(direction, RuntimeException.class, "Direction for getEdges cannot be null");
-    ValidationUtils.validateNotNull(labels,RuntimeException.class, "Label for edge in getEdges cannot be null");
+    ValidationUtils.validateNotNull(direction, IllegalArgumentException.class, "Direction for getEdges cannot be null");
+    ValidationUtils.validateNotNull(labels,IllegalArgumentException.class, "Label for edge in getEdges cannot be null");
     ValidationUtils.validateStringNotEmpty(labels.toString(), RuntimeException.class, "Label for edge in getEdges cannot be empty");
 
     String srcType = this.getType();
@@ -190,8 +190,8 @@
     3) Return the newly created edge
     */
 
-    ValidationUtils.validateNotNull(label,RuntimeException.class,"Label for edge cannot be null");
-    ValidationUtils.validateNotNull(inVertex, RuntimeException.class, "Target vertex cannot be null");
+    ValidationUtils.validateNotNull(label,IllegalArgumentException.class,"Label for edge cannot be null");
+    ValidationUtils.validateNotNull(inVertex, IllegalArgumentException.class, "Target vertex cannot be null");
     ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label of edge cannot be emoty");
 
     UsergridEdge e = new UsergridEdge(this.getId().toString(), inVertex.getId().toString(), label);
@@ -225,7 +225,7 @@
 
     //TODO: Check if vertex exists?
 
-    ValidationUtils.validateNotNull(key,RuntimeException.class,"Property key cannot be null");
+    ValidationUtils.validateNotNull(key,IllegalArgumentException.class,"Property key cannot be null");
     ValidationUtils.validateStringNotEmpty(key,RuntimeException.class,"Property key cannot be empty");
 
     T propertyValue = (T) super.getEntityProperty(key);
@@ -262,7 +262,7 @@
     */
     public void setLocalProperty(String key, Object value) {
 
-    ValidationUtils.validateNotNull(key, RuntimeException.class, "Key for the property cannot be null");
+    ValidationUtils.validateNotNull(key, IllegalArgumentException.class, "Key for the property cannot be null");
 
     ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
 
