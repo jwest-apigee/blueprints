@@ -18,6 +18,9 @@ import org.apache.log4j.Logger;
 public class UsergridGraph implements Graph {
 
     private static final int COUNT = 0;
+    private static final String LIMIT = "limit";
+    private static final String EVENTS = "events" ;
+    private static final String HTTP_GET = "GET";
     public static Usergrid client;
     private static String defaultType;
     private static int entityRetrivalCount;
@@ -159,12 +162,12 @@ public class UsergridGraph implements Graph {
         /**
          * Does the graph support graph.getEdges()?
          */
-        features.supportsEdgeIteration = Boolean.FALSE;
+        features.supportsEdgeIteration = Boolean.TRUE;
 
         /**
          * Does the graph support graph.getVertices()?
          */
-        features.supportsVertexIteration = Boolean.FALSE;
+        features.supportsVertexIteration = Boolean.TRUE;
 
         /**
          * Does the graph support retrieving edges by id, i.e. graph.getEdge(Object id)?
@@ -377,8 +380,9 @@ public class UsergridGraph implements Graph {
 
                 log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty(STRING_NAME) + "' got are : " + v.getProperties());
                 log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-                return v;
             }
+            return v;
+
         }
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
 
@@ -440,7 +444,7 @@ public class UsergridGraph implements Graph {
 
     public Iterable<Vertex> getVertices() {
         Map<String, Object> paramsMap = new HashMap<String, Object>();
-        paramsMap.put("limit", entityRetrivalCount);
+        paramsMap.put(LIMIT, entityRetrivalCount);
         List<Vertex> allVertices = new ArrayList<Vertex>();
         Iterator<Map.Entry<String, JsonNode>> collectionList;
         Map.Entry<String, JsonNode> collection;
@@ -450,8 +454,8 @@ public class UsergridGraph implements Graph {
         while (collectionList.hasNext()) {
             collection = collectionList.next();
             collectionName = collection.getKey();
-            //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
-            if (collectionName != ROLES)
+            //TODO : exclude "roles" and events entities.Is there a standard list of collections we can ignore?
+            if (collectionName != ROLES && collectionName != EVENTS)
             {
                 allVertices.addAll(GetVerticesForCollection(collectionName,paramsMap));
             }
@@ -461,10 +465,10 @@ public class UsergridGraph implements Graph {
 
     private List<Vertex> GetVerticesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Vertex> allVertices =  new ArrayList<Vertex>();
-        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
         while (responseEntities.getCursor() != null) {
-            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
             AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
             paramsMap.put("cursor", responseEntities.getCursor());
         }
@@ -481,7 +485,7 @@ public class UsergridGraph implements Graph {
 
         Integer next = 0;
         if (entities.size() == 0) {
-            return null;
+            return new ArrayList<Vertex>();
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
@@ -526,10 +530,29 @@ public class UsergridGraph implements Graph {
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
 
         //updating the source and target vertex to reflect new properties.
-        outVertex = getVertex(source.getId());
-        log.debug("DEBUG getEdge(): source vertex with id : " + outVertex.getId() + "is updated");
+        response = client.getEntity(source.getType(),source.getUuid().toString());
+        Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
+//
+//        UsergridVertex srcVertex = (UsergridVertex) getVertex(source.getId());
+//        Map<String, JsonNode> srcVertexProp = srcVertex.getProperties();
 
-        inVertex = getVertex(target.getId());
+        for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            outVertex.setProperty(key, value);
+        }
+
+
+        response = client.getEntity(target.getType(),target.getUuid().toString());
+        Map<String, JsonNode> trgprops = response.getFirstEntity().getProperties();
+
+//        UsergridVertex trgVertex = (UsergridVertex) getVertex(target.getId());
+//        Map<String, JsonNode>  trgVertexProp = trgVertex.getProperties();
+        for (Map.Entry<String, JsonNode> entry : trgprops.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            inVertex.setProperty(key, value);
+        }
         log.debug("DEBUG getEdge(): target vertex with id : " + inVertex.getId() + "is updated");
 
         ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
@@ -570,7 +593,7 @@ public class UsergridGraph implements Graph {
             String label = properties[2];
 
             //Check if the edge is valid.
-            ApiResponse response = client.apiRequest("GET", null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            ApiResponse response = client.apiRequest(HTTP_GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
             if (response.getError() != null) {
 //                log.error("The get requested does not exists in the database.");
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
@@ -641,8 +664,8 @@ public class UsergridGraph implements Graph {
     public Iterable<Edge> getEdges() {
 
         Map<String, Object> paramsMap = new HashMap<String, Object>();
-        paramsMap.put("limit", entityRetrivalCount);
-        List<Edge> allVertices = new ArrayList<Edge>();
+        paramsMap.put(LIMIT, entityRetrivalCount);
+        List<Edge> allEdges = new ArrayList<Edge>();
         Iterator<Map.Entry<String, JsonNode>> collectionList;
         Map.Entry<String, JsonNode> collection;
         String collectionName;
@@ -652,12 +675,12 @@ public class UsergridGraph implements Graph {
             collection = collectionList.next();
             collectionName = collection.getKey();
             //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
-            if (collectionName != ROLES)
+            if (collectionName != ROLES && collectionName != "events")
             {
-                allVertices.addAll(GetEdgesForCollection(collectionName, paramsMap));
+                allEdges.addAll(GetEdgesForCollection(collectionName, paramsMap));
             }
         }
-        return allVertices;
+        return allEdges;
 
 
 //        throw new UnsupportedOperationException("Not supported for Usergrid");
@@ -666,10 +689,10 @@ public class UsergridGraph implements Graph {
 
     private List<Edge> GetEdgesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Edge> allEdges =  new ArrayList<Edge>();
-        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         while (responseEntities.getCursor() != null) {
-            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
             AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
             paramsMap.put("cursor", responseEntities.getCursor());
         }
@@ -680,7 +703,7 @@ public class UsergridGraph implements Graph {
 
         Integer next = 0;
         if (entities.size() == 0) {
-            return null;
+            return new ArrayList<Edge>();
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
