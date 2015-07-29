@@ -22,11 +22,10 @@ public class ValidationUtils {
   public static final String ORG_APP_NOT_FOUND= "organization_application_not_found";
   public static final String RESOURCE_NOT_FOUND = "service_resource_not_found";
 
-  public static void validateNotNull(Object o, Class<RuntimeException> exceptionClass, String message) {
+  public static void validateNotNull(Object o, Class<IllegalArgumentException> exceptionClass, String message) {
     if (o == null) {
-
       try {
-        Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
+        Constructor<IllegalArgumentException> c = exceptionClass.getDeclaredConstructor(String.class);
         RuntimeException e = c.newInstance(message);
         throw e;
       } catch (NoSuchMethodException e) {
@@ -37,11 +36,7 @@ public class ValidationUtils {
         e.printStackTrace();
       } catch (IllegalAccessException e) {
         e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
       }
-
-
     }
   }
 

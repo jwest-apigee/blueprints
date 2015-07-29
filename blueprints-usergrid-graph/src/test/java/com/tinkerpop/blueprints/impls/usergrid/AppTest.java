@@ -57,13 +57,32 @@ public class AppTest {
     Vertex object3 = usergrid.addVertex(null);
     System.out.println("id object3 :: " + object3.getId());
 
+    System.out.println();
+    System.out.println("Checking if object with same object UUID as that created with null object type returns the same object");
+    Vertex object4 = usergrid.addVertex(object3.getId());
+    Vertex object3again = usergrid.getVertex(object3.getId());
+    if (object4.equals(object3again)){
+      System.out.println("Test passed");
+    }
+    else {
+      System.out.println("Test failed");
+      System.out.println("This is object 3:");
+      System.out.println(object3again);
+      System.out.println(object3again.getClass().toString());
+      System.out.println("This is object 4:");
+      System.out.println(object4);
+      System.out.println(object4.getClass().toString());
+    }
+
+    System.out.println();
     System.out.println("Checking change of Type for a vertex with incoming and outgoing edges");
-    object3.setProperty("name", "Object3toPerson");
-    object3.addEdge("likes", restaurant1);
-    restaurant2.addEdge("advertisesTo", object3);
-    object3.setProperty("type", "person");
-    System.out.println(object3);
-    System.out.println("Has edges"+object3.getEdges(Direction.IN,"advertisesTo") + object3.getEdges(Direction.OUT,"likes"));
+    Vertex object5 = usergrid.addVertex(null);
+    object5.setProperty("name", "Object5toPerson");
+    object5.addEdge("likes", restaurant1);
+    restaurant2.addEdge("advertisesTo", object5);
+    object5.setProperty("type", "person");
+    System.out.println(object5);
+    System.out.println("Has edges"+object5.getEdges(Direction.IN,"advertisesTo") + object5.getEdges(Direction.OUT,"likes"));
 
 
     System.out.println();

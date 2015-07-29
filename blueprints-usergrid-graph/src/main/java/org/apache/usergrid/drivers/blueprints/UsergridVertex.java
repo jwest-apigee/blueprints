@@ -51,13 +51,14 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
          3) Return an iterable of edges
          */
 
-        ValidationUtils.validateNotNull(direction, RuntimeException.class, "Direction for getEdges cannot be null");
+        ValidationUtils.validateNotNull(direction, IllegalArgumentException.class, "Direction for getEdges cannot be null");
         //ValidationUtils.validateNotNull(labels, RuntimeException.class, "Label for edge in getEdges cannot be null");
         ValidationUtils.validateStringNotEmpty(labels.toString(), RuntimeException.class, "Label for edge in getEdges cannot be empty");
 
         String srcType = this.getType();
         String srcId = this.getUuid().toString();
         List<Edge> edgesSet1 = new ArrayList<Edge>();
+
         List<Edge> edgesSet2 = new ArrayList<Edge>();
 
         ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
@@ -180,28 +181,28 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      */
     public Edge addEdge(String label, Vertex inVertex) {
 
-        /**
-         1) Check if the target vertex exists
-         2) Use the following to add an edge - connectEntities( String connectingEntityType,String
-         connectingEntityId, String connectionType, String connectedEntityId) in org.apache.usergrid.java.client
-         3) Return the newly created edge
-         */
+    /**
+    1) Check if the target vertex exists
+    2) Use the following to add an edge - connectEntities( String connectingEntityType,String
+    connectingEntityId, String connectionType, String connectedEntityId) in org.apache.usergrid.java.client
+    3) Return the newly created edge
+    */
 
-        ValidationUtils.validateNotNull(label, RuntimeException.class, "Label for edge cannot be null");
-        ValidationUtils.validateNotNull(inVertex, RuntimeException.class, "Target vertex cannot be null");
-        ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label of edge cannot be emoty");
+    ValidationUtils.validateNotNull(label,IllegalArgumentException.class,"Label for edge cannot be null");
+    ValidationUtils.validateNotNull(inVertex, IllegalArgumentException.class, "Target vertex cannot be null");
+    ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label of edge cannot be emoty");
 
-        UsergridEdge e = new UsergridEdge(this.getId().toString(), inVertex.getId().toString(), label);
-        ApiResponse response = UsergridGraph.client.connectEntities(this, (UsergridVertex) inVertex, label);
+    UsergridEdge e = new UsergridEdge(this.getId().toString(), inVertex.getId().toString(), label);
+    ApiResponse response = UsergridGraph.client.connectEntities(this, (UsergridVertex) inVertex, label);
 
-        //TODO: What happens when an edge between two vertices already exists? Return the existing edge?
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+    //TODO: What happens when an edge between two vertices already exists? Return the existing edge?
+    ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
+    ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+    ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+    ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+    ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
-        return e;
+      return e;
     }
 
     /**
@@ -222,8 +223,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
         //TODO: Check if vertex exists?
 
-        ValidationUtils.validateNotNull(key, RuntimeException.class, "Property key cannot be null");
-        ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Property key cannot be empty");
+    ValidationUtils.validateNotNull(key,IllegalArgumentException.class,"Property key cannot be null");
+    ValidationUtils.validateStringNotEmpty(key,RuntimeException.class,"Property key cannot be empty");
 
         T propertyValue = (T) super.getEntityProperty(key);
 
@@ -258,25 +259,26 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      */
     public void setLocalProperty(String key, Object value) {
 
-        ValidationUtils.validateNotNull(key, RuntimeException.class, "Key for the property cannot be null");
 
-        ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
+    ValidationUtils.validateNotNull(key, IllegalArgumentException.class, "Key for the property cannot be null");
 
-        if (value instanceof String) {
-            super.setProperty(key, (String) value);
-        } else if (value instanceof JsonNode) {
-            super.setProperty(key, (JsonNode) value);
-        } else if (value instanceof Integer) {
-            super.setProperty(key, (Integer) value);
-        } else if (value instanceof Float) {
-            super.setProperty(key, (Float) value);
-        } else if (value instanceof Boolean) {
-            super.setProperty(key, (Boolean) value);
-        } else if (value instanceof Long) {
-            super.setProperty(key, (Long) value);
-        } else {
-            throw new IllegalArgumentException("Supplied id class of " + String.valueOf(value.getClass()) + " is not supported");
-        }
+    ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
+
+    if (value instanceof String) {
+    super.setProperty(key, (String) value);
+    } else if (value instanceof JsonNode) {
+    super.setProperty(key, (JsonNode) value);
+    } else if (value instanceof Integer) {
+    super.setProperty(key, (Integer) value);
+    } else if (value instanceof Float) {
+    super.setProperty(key, (Float) value);
+    } else if (value instanceof Boolean) {
+    super.setProperty(key, (Boolean) value);
+    } else if (value instanceof Long) {
+    super.setProperty(key, (Long) value);
+    } else {
+    throw new IllegalArgumentException("Supplied id class of " + String.valueOf(value.getClass()) + " is not supported");
+    }
     }
 
     public void setProperty(String key, Object value) {
