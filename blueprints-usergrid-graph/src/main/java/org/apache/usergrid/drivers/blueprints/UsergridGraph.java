@@ -488,9 +488,9 @@ public class UsergridGraph implements Graph {
         ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
         while (responseEntities.getCursor() != null) {
+            paramsMap.put("cursor", responseEntities.getCursor());
             responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
             AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-            paramsMap.put("cursor", responseEntities.getCursor());
         }
         return allVertices;
     }
@@ -701,8 +701,6 @@ public class UsergridGraph implements Graph {
             }
         }
         return allEdges;
-
-
 //        throw new UnsupportedOperationException("Not supported for Usergrid");
     }
 
@@ -712,9 +710,9 @@ public class UsergridGraph implements Graph {
         ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         while (responseEntities.getCursor() != null) {
+            paramsMap.put("cursor", responseEntities.getCursor());
             responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
             AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
-            paramsMap.put("cursor", responseEntities.getCursor());
         }
         return allEdges;
     }
@@ -732,7 +730,8 @@ public class UsergridGraph implements Graph {
             Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
             if (edges != null) {
                 for (Edge edge : edges)
-                    allEdges.add(edge);
+                    if(!allEdges.contains(edge))
+                        allEdges.add(edge);
             }
             next++;
         }
