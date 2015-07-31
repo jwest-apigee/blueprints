@@ -225,8 +225,8 @@
 
     //TODO: Check if vertex exists?
 
-    ValidationUtils.validateNotNull(key,IllegalArgumentException.class,"Property key cannot be null");
-    ValidationUtils.validateStringNotEmpty(key,RuntimeException.class,"Property key cannot be empty");
+    ValidationUtils.validateNotNull(key, IllegalArgumentException.class, "Property key cannot be null");
+    ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Property key cannot be empty");
 
     T propertyValue = (T) super.getEntityProperty(key);
 
@@ -395,5 +395,21 @@
     return id;
 
     }
+    @Override
+        public boolean equals(Object o){
+            UsergridVertex v = (UsergridVertex)o;
+            Boolean flag;
+            if ((this.getUuid()==v.getUuid())&&(this.getType()==v.getType())){flag = Boolean.TRUE;}
+            else {flag = Boolean.FALSE;}
+            return flag;
+        }
+
+        @Override
+        public int hashCode(){
+            int hash = 3;
+            hash = 53 * hash + (this.getType() != null ? this.getType().hashCode() : 0);
+            //hash = 53 * hash + this.getUuid().;
+            return hash;
+        };
 
     }

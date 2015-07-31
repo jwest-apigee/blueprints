@@ -397,8 +397,9 @@ public class UsergridGraph implements Graph {
 
                 log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty(STRING_NAME) + "' got are : " + v.getProperties());
                 log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-                return v;
+
             }
+            return v;
         }
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
 
@@ -505,8 +506,8 @@ public class UsergridGraph implements Graph {
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
-            String name = entities.get(next).getStringProperty("name");
-            Vertex ugvertex = getVertex(type + "/" + name);
+            String StringUUID = entities.get(next).getUuid().toString();
+            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
             allVertices.add(ugvertex);
             next++;
         }
@@ -704,8 +705,8 @@ public class UsergridGraph implements Graph {
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
-            String name = entities.get(next).getStringProperty("name");
-            Vertex ugvertex = getVertex(type + "/" + name);
+            String StringUUID = entities.get(next).getUuid().toString();
+            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
             Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
             if (edges != null) {
                 for (Edge edge : edges)
