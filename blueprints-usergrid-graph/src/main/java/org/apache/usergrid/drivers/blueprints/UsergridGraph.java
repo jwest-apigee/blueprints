@@ -499,8 +499,10 @@ public class UsergridGraph implements Graph {
             return new ArrayList<Vertex>();
         }
         while (entities.size() > next) {
-            UsergridEntity entity = entities.get(next);
-            allVertices.add(CreateVertexFromEntity(entity));
+            String type = entities.get(next).getType();
+            String StringUUID = entities.get(next).getUuid().toString();
+            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
+            allVertices.add(ugvertex);
             next++;
         }
         return allVertices;
@@ -715,8 +717,8 @@ public class UsergridGraph implements Graph {
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
-            String name = entities.get(next).getStringProperty("name");
-            Vertex ugvertex = getVertex(type + "/" + name);
+            String StringUUID = entities.get(next).getUuid().toString();
+            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
             Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
             if (edges != null) {
                 for (Edge edge : edges)
