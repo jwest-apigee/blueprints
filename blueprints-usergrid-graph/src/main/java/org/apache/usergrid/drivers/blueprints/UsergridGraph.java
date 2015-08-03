@@ -423,9 +423,13 @@ public class UsergridGraph implements Graph {
         String[] parts = id.split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
-        ApiResponse response = client.deleteEntity(type, StringUUID);
-        log.debug("DEBUG removeVertex(): Api response returned for remove vertex is : " + response);
-        ValidateResponseErrors(response);
+
+        try {
+            ApiResponse response = client.deleteEntity(type, StringUUID);
+        }
+        catch(NotAuthorizedException e){
+            throw new IllegalStateException("Vertex you are trying to delete does not exist");
+        }
 
     }
 
