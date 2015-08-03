@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.apache.usergrid.java.client.response.ApiResponse;
 //import sun.security.provider.certpath.Vertex;
 
+import javax.ws.rs.NotAuthorizedException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -214,7 +215,5 @@ public class ValidationUtils {
       }
     }
   }
-
-
 
 }
