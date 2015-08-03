@@ -427,14 +427,19 @@ public class UsergridGraph implements Graph {
         String[] parts = id.split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
-        ApiResponse response = client.deleteEntity(type, StringUUID);
-        log.debug("DEBUG removeVertex(): Api response returned for remove vertex is : " + response);
+        try {
+            ApiResponse response = client.deleteEntity(type, StringUUID);
+        }
+        catch(NotAuthorizedException e){
+            throw new IllegalStateException("Vertex you are trying to delete does not exist");
+        }
 
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+//        log.debug("DEBUG removeVertex(): Api response returned for remove vertex is : " + response);
+//        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
+//        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+//        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+//        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+//        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
         log.debug("DEBUG removeVertex(): succesfully removed the vertex");
 
     }

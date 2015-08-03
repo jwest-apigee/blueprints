@@ -395,21 +395,36 @@
     return id;
 
     }
-    @Override
-        public boolean equals(Object o){
-            UsergridVertex v = (UsergridVertex)o;
-            Boolean flag;
-            if ((this.getUuid()==v.getUuid())&&(this.getType()==v.getType())){flag = Boolean.TRUE;}
-            else {flag = Boolean.FALSE;}
-            return flag;
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof UsergridVertex){
+                UsergridVertex v = (UsergridVertex)o;
+                boolean flag;
+                if ((this.getUuid().equals(v.getUuid()))&&(this.getType().equals(v.getType()))){flag = true;}
+                else {flag = false;}
+                return flag;
+
+            }
+            else if (o instanceof Vertex) {
+                Vertex v = (Vertex) o;
+                boolean flag;
+                if ((this.getProperty(STRING_UUID).equals(v.getProperty(STRING_UUID))) && (this.getProperty(STRING_TYPE).equals(v.getProperty(STRING_TYPE)))) {
+                    flag = true;
+                } else {
+                    flag = false;
+                }
+                return flag;
+            }
+
+            throw new IllegalArgumentException("Couldn't compare class '" + o.getClass() + "'");
         }
+
 
         @Override
         public int hashCode(){
-            int hash = 3;
-            hash = 53 * hash + (this.getType() != null ? this.getType().hashCode() : 0);
-            //hash = 53 * hash + this.getUuid().;
-            return hash;
-        };
+            int hashCode = this.getId().hashCode();
+            return hashCode;
+        }
 
     }
