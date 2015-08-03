@@ -20,10 +20,19 @@ import javax.ws.rs.NotAuthorizedException;
 public class UsergridGraph implements Graph {
 
     private static final int COUNT = 0;
+    private static final String LIMIT = "limit";
+    private static final String EVENTS = "events" ;
+    private static final String HTTP_GET = "GET";
+    private static final String CURSOR = "cursor";
+    private static final String ACTIVITIES = "activities";
+    private static final String USERS = "users";
+    private static final String ASSETS = "assets";
+
     public static Usergrid client;
     private static String defaultType;
     private static int entityRetrivalCount;
 
+    ArrayList<String> ignoreList = new ArrayList<String>();
 
     private static String METADATA = "metadata";
     private static String COLLECTIONS = "collections";
@@ -168,12 +177,12 @@ public class UsergridGraph implements Graph {
         /**
          * Does the graph support graph.getVertices()?
          */
-        features.supportsVertexIteration = Boolean.FALSE;
+        features.supportsVertexIteration = Boolean.TRUE;
 
         /**
          * Does the graph support retrieving edges by id, i.e. graph.getEdge(Object id)?
          */
-        features.supportsEdgeRetrieval = Boolean.FALSE;
+        features.supportsEdgeRetrieval = Boolean.TRUE;
 
         /**
          * Does the graph support setting and retrieving properties on vertices?
@@ -221,6 +230,12 @@ public class UsergridGraph implements Graph {
         String apiUrl = config.getString("usergrid.apiUrl");
         String clientId = config.getString("usergrid.client_id");
         String clientSecret = config.getString("usergrid.client_secret");
+
+        ignoreList.add(ROLES);
+        ignoreList.add(EVENTS);
+        ignoreList.add(ACTIVITIES);
+        ignoreList.add(USERS);
+        ignoreList.add(ASSETS);
 
         ValidationUtils.validateNotNull(orgName, IllegalArgumentException.class, "Organization name in Usergrid cannot be null");
         ValidationUtils.validateNotNull(appName, IllegalArgumentException.class, "Application name in Usergrid cannot be null");
@@ -327,13 +342,8 @@ public class UsergridGraph implements Graph {
         ApiResponse response = client.createEntity(v);
 
         log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
-
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+        ValidateResponseErrors(response);
         ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
         String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
         v.setUuid(UUID.fromString(uuid));
@@ -378,28 +388,14 @@ public class UsergridGraph implements Graph {
             }
             ApiResponse response = client.getEntity(type, StringUUID);
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
+            ValidateResponseErrors(response);
 
-            ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-            ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-            ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-            ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-            ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+            UsergridVertex ugvertex = CreateVertexFromEntity(response.getFirstEntity());
 
-            String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-            Map<String, JsonNode> vertexProperties = new HashMap<String, JsonNode>();
-            vertexProperties = response.getFirstEntity().getProperties();
-            UsergridVertex v = new UsergridVertex(type);
-            v.setUuid(UUID.fromString(uuid));
-            for (Map.Entry<String, JsonNode> entry : vertexProperties.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                v.setLocalProperty(key, value);
+            log.debug("DEBUG getVertex(): Properties of the vertex : '" + ugvertex.getProperty(STRING_NAME) + "' got are : " + ugvertex.getProperties());
+            log.debug("DEBUG getVertex(): Returning vertex with uuid : " + ugvertex.getUuid().toString());
+            return ugvertex;
 
-                log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty(STRING_NAME) + "' got are : " + v.getProperties());
-                log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-
-            }
-            return v;
         }
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
 
@@ -427,6 +423,7 @@ public class UsergridGraph implements Graph {
         String[] parts = id.split(SLASH);
         String type = parts[0];
         String StringUUID = parts[1];
+
         try {
             ApiResponse response = client.deleteEntity(type, StringUUID);
         }
@@ -434,14 +431,14 @@ public class UsergridGraph implements Graph {
             throw new IllegalStateException("Vertex you are trying to delete does not exist");
         }
 
-//        log.debug("DEBUG removeVertex(): Api response returned for remove vertex is : " + response);
-//        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-//        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-//        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-//        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-//        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
-        log.debug("DEBUG removeVertex(): succesfully removed the vertex");
+    }
 
+    public static void ValidateResponseErrors(ApiResponse response) {
+        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
+        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
+        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
+        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
     }
 
     /**
@@ -466,20 +463,14 @@ public class UsergridGraph implements Graph {
 
     public Iterable<Vertex> getVertices() {
         Map<String, Object> paramsMap = new HashMap<String, Object>();
-        paramsMap.put("limit", entityRetrivalCount);
+        paramsMap.put(LIMIT, entityRetrivalCount);
         List<Vertex> allVertices = new ArrayList<Vertex>();
-        Iterator<Map.Entry<String, JsonNode>> collectionList;
-        Map.Entry<String, JsonNode> collection;
-        String collectionName;
-        collectionList = getAllCollections();
-
+        Iterator<Map.Entry<String, JsonNode>> collectionList = getAllCollections();
         while (collectionList.hasNext()) {
-            collection = collectionList.next();
-            collectionName = collection.getKey();
-            //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
-            if (collectionName != ROLES)
-            {
-                allVertices.addAll(GetVerticesForCollection(collectionName,paramsMap));
+            Map.Entry<String, JsonNode> collection = collectionList.next();
+            String collectionName = collection.getKey();
+            if (! ignoreList.contains(collectionName)) {
+                allVertices.addAll(GetVerticesForCollection(collectionName, paramsMap));
             }
         }
         return allVertices;
@@ -487,12 +478,16 @@ public class UsergridGraph implements Graph {
 
     private List<Vertex> GetVerticesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Vertex> allVertices =  new ArrayList<Vertex>();
-        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-        AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-        while (responseEntities.getCursor() != null) {
-            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        ValidateResponseErrors(responseEntities);
+       if (responseEntities.getEntities().size() != 0) {
             AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
-            paramsMap.put("cursor", responseEntities.getCursor());
+            while (responseEntities.getCursor() != null) {
+                paramsMap.put(CURSOR, responseEntities.getCursor());
+                responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+                ValidateResponseErrors(responseEntities);
+                AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
+            }
         }
         return allVertices;
     }
@@ -502,12 +497,10 @@ public class UsergridGraph implements Graph {
         return response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
     }
 
-
     private List<Vertex> AddIntoEntitiesArray(List<UsergridEntity> entities, List<Vertex> allVertices) {
-
         Integer next = 0;
         if (entities.size() == 0) {
-            return null;
+            return new ArrayList<Vertex>();
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
@@ -517,6 +510,21 @@ public class UsergridGraph implements Graph {
             next++;
         }
         return allVertices;
+    }
+
+    private UsergridVertex CreateVertexFromEntity(UsergridEntity entity) {
+        String type = entity.getType();
+        UUID uuid = entity.getUuid();
+        Map<String, JsonNode> vertexProperties = new HashMap<String, JsonNode>();
+        vertexProperties = entity.getProperties();
+        UsergridVertex ugvertex = new UsergridVertex(type);
+        ugvertex.setUuid(uuid);
+        for (Map.Entry<String, JsonNode> entry : vertexProperties.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            ugvertex.setLocalProperty(key, value);
+        }
+        return ugvertex;
     }
 
 
@@ -552,19 +560,28 @@ public class UsergridGraph implements Graph {
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
 
         //updating the source and target vertex to reflect new properties.
-        outVertex = getVertex(source.getId());
-        log.debug("DEBUG getEdge(): source vertex with id : " + outVertex.getId() + "is updated");
+        response = client.getEntity(source.getType(),source.getUuid().toString());
+        ValidateResponseErrors(response);
+        Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
+        for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            outVertex.setProperty(key, value);
+        }
 
-        inVertex = getVertex(target.getId());
+        response = client.getEntity(target.getType(),target.getUuid().toString());
+        ValidateResponseErrors(response);
+        ValidationUtils.validateDuplicate(response, RuntimeException.class, "Edge of the same type already exists between the two vertices in Usergrid");
+        ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
+
+        Map<String, JsonNode> trgprops = response.getFirstEntity().getProperties();
+        for (Map.Entry<String, JsonNode> entry : trgprops.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            inVertex.setProperty(key, value);
+        }
         log.debug("DEBUG getEdge(): target vertex with id : " + inVertex.getId() + "is updated");
 
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-        ValidationUtils.validateDuplicate(response, RuntimeException.class, "Edge of the same type already exists between the two vertices in Usergrid");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
-        ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
         log.debug("DEBUG addEdge(): Returning Edge with id : " + e.getId());
 
         return e;
@@ -596,7 +613,7 @@ public class UsergridGraph implements Graph {
             String label = properties[2];
 
             //Check if the edge is valid.
-            ApiResponse response = client.apiRequest("GET", null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            ApiResponse response = client.apiRequest(HTTP_GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
             if (response.getError() != null) {
 //                log.error("The get requested does not exists in the database.");
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
@@ -648,11 +665,7 @@ public class UsergridGraph implements Graph {
         ApiResponse response = client.disconnectEntities(srcVertex, trgVertex, label);
         log.debug("DEBUG removeEdge(): Response returned from API call to disconnect Vertices is : " + response);
 
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+        ValidateResponseErrors(response);
         ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
 
         log.debug("DEBUG removeEdge(): exiting from remove edge.");
@@ -667,8 +680,8 @@ public class UsergridGraph implements Graph {
     public Iterable<Edge> getEdges() {
 
         Map<String, Object> paramsMap = new HashMap<String, Object>();
-        paramsMap.put("limit", entityRetrivalCount);
-        List<Edge> allVertices = new ArrayList<Edge>();
+        paramsMap.put(LIMIT, entityRetrivalCount);
+        List<Edge> allEdges = new ArrayList<Edge>();
         Iterator<Map.Entry<String, JsonNode>> collectionList;
         Map.Entry<String, JsonNode> collection;
         String collectionName;
@@ -678,26 +691,24 @@ public class UsergridGraph implements Graph {
             collection = collectionList.next();
             collectionName = collection.getKey();
             //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
-            if (collectionName != ROLES)
+            if (collectionName != ROLES && collectionName != "events")
             {
-                allVertices.addAll(GetEdgesForCollection(collectionName, paramsMap));
+                allEdges.addAll(GetEdgesForCollection(collectionName, paramsMap));
             }
         }
-        return allVertices;
-
-
+        return allEdges;
 //        throw new UnsupportedOperationException("Not supported for Usergrid");
     }
 
 
     private List<Edge> GetEdgesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Edge> allEdges =  new ArrayList<Edge>();
-        ApiResponse responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         while (responseEntities.getCursor() != null) {
-            responseEntities = client.apiRequest("GET", paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
-            AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
             paramsMap.put("cursor", responseEntities.getCursor());
+            responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         }
         return allEdges;
     }
@@ -706,7 +717,7 @@ public class UsergridGraph implements Graph {
 
         Integer next = 0;
         if (entities.size() == 0) {
-            return null;
+            return new ArrayList<Edge>();
         }
         while (entities.size() > next) {
             String type = entities.get(next).getType();
@@ -715,7 +726,8 @@ public class UsergridGraph implements Graph {
             Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
             if (edges != null) {
                 for (Edge edge : edges)
-                    allEdges.add(edge);
+                    if(!allEdges.contains(edge))
+                        allEdges.add(edge);
             }
             next++;
         }
