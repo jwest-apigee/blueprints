@@ -156,9 +156,10 @@ public class UsergridEdge extends Connection implements Edge {
       String key = entry.getKey();
       Object value = entry.getValue();
       v.setLocalProperty(key, value);
-      log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
-      log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
     }
+
+    log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
+    log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
       return v; // return target vertex
 
   }
@@ -204,6 +205,19 @@ public class UsergridEdge extends Connection implements Edge {
     return null;
   }
 
+
+  @Override
+  public int hashCode() {
+    final int hashCode = this.getId().hashCode();
+    return hashCode;
+
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    final UsergridEdge other = (UsergridEdge) obj;
+    return this.getId().equals(other.getId());
+  }
 
   protected void assertClientInitialized() {
     if (UsergridGraph.client == null) {
