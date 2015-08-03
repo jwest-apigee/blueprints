@@ -87,13 +87,11 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                     IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
                     return edgesSet1;
                 } else if (!checkHasEdges(trgEntity, CONNECTING)) {
-                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
+                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
                     return edgesSet1;
                 }
-
                 IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
-                return edgesSet1;
-
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
         }
         return new ArrayList<Edge>();
     }
