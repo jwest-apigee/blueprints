@@ -1,15 +1,6 @@
 package com.tinkerpop.blueprints.impls.usergrid;
 
 import com.tinkerpop.blueprints.*;
-import org.apache.usergrid.drivers.blueprints.EntityId;
-import org.apache.usergrid.drivers.blueprints.UsergridEdge;
-import org.apache.usergrid.drivers.blueprints.UsergridGraph;
-//import org.apache.usergrid.java.client.model.EntityId;
-
-import javax.security.auth.login.Configuration;
-import java.io.File;
-import java.util.HashMap;
-import java.util.UUID;
 
 /**
  * Created by ApigeeCorporation on 6/29/15.
