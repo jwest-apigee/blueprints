@@ -1,10 +1,13 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import org.apache.commons.collections.iterators.ArrayIterator;
+import org.apache.commons.collections.iterators.ArrayListIterator;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.model.UsergridEntity;
 import org.apache.usergrid.java.client.response.ApiResponse;
@@ -52,55 +55,53 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
          */
 
         ValidationUtils.validateNotNull(direction, IllegalArgumentException.class, "Direction for getEdges cannot be null");
-        //ValidationUtils.validateNotNull(labels, RuntimeException.class, "Label for edge in getEdges cannot be null");
         ValidationUtils.validateStringNotEmpty(labels.toString(), RuntimeException.class, "Label for edge in getEdges cannot be empty");
 
         String srcType = this.getType();
         String srcId = this.getUuid().toString();
         List<Edge> edgesSet1 = new ArrayList<Edge>();
-
-        List<Edge> edgesSet2 = new ArrayList<Edge>();
+//        List<Edge> edgesSet2 = new ArrayList<Edge>();
 
         ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+        UsergridGraph.ValidateResponseErrors(response);
 
-        ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-        ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-        ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-        ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-        ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
-
-        UsergridEntity trgUUID = response.getFirstEntity();
+        UsergridEntity trgEntity = response.getFirstEntity();
 
         switch (direction) {
             case OUT:
-                if (!checkHasEdges(trgUUID, CONNECTIONS)) {
+                if (!checkHasEdges(trgEntity, CONNECTIONS)) {
                     return new ArrayList<Edge>();
                 }
-                IterarteOverEdges(trgUUID, srcType, srcId, edgesSet1, CONNECTIONS,labels);
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
                 return edgesSet1;
 
             case IN:
-                if (!checkHasEdges(trgUUID, CONNECTIONING)) {
+                if (!checkHasEdges(trgEntity, CONNECTIONING)) {
                     return new ArrayList<Edge>();
                 }
-                IterarteOverEdges(trgUUID, srcType, srcId, edgesSet2, CONNECTIONING,labels);
-                return edgesSet2;
-            case BOTH:
-                if (!checkHasEdges(trgUUID, CONNECTIONS)) {
-                    return new ArrayList<Edge>();
-                }
-                if (!checkHasEdges(trgUUID, CONNECTIONING)) {
-                    return new ArrayList<Edge>();
-                }
-                IterarteOverEdges(trgUUID, srcType, srcId, edgesSet1, CONNECTIONS,labels);
-                IterarteOverEdges(trgUUID, srcType, srcId, edgesSet2, CONNECTIONING,labels);
-                edgesSet1.addAll(edgesSet2);
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
                 return edgesSet1;
+            case BOTH:
+                if (!checkHasEdges(trgEntity, CONNECTIONS)) {
+                    if (!checkHasEdges(trgEntity, CONNECTIONING)) {
+                        return new ArrayList<Edge>();
+                    }
+                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                    return edgesSet1;
+                } else if (!checkHasEdges(trgEntity, CONNECTIONING)) {
+                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                    return edgesSet1;
+                }
+
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                return edgesSet1;
+
         }
-
-
         return new ArrayList<Edge>();
     }
+
+
 
     private boolean checkHasEdges(UsergridEntity trgUUID, String CONNECTIONS) {
         if (trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS) == null)
@@ -110,28 +111,37 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     }
 
     private void IterarteOverEdges(UsergridEntity trgUUID, String srcType, String srcId, List<Edge> edges, String conn, String... labels) {
-        Iterator<String> connections = trgUUID.getProperties().get(METADATA).findValue(conn).fieldNames();
-        Direction direction = null;
-        while (connections.hasNext()) {
-
-            String name = connections.next();
-            ApiResponse resp = null;
-            if (conn == CONNECTIONS) {
-                resp = UsergridGraph.client.queryConnection(srcType, srcId, name);
-                direction = Direction.OUT;
-            } else {
-                resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, name);
-                direction = Direction.IN;
+        List<String> connections = new ArrayList<String>();
+        if(labels.length != 0){
+//          System.arraycopy(labels,0,connections,0,labels.length);
+            for (String label : labels){
+                connections.add(label);
             }
-            List<UsergridEntity> entities = resp.getEntities();
-            edges = getAllEdgesForVertex(entities, name, edges, direction);
+        }else {
+            Iterator<String> conn1 = trgUUID.getProperties().get(METADATA).findValue(conn).fieldNames();
+            while(conn1.hasNext()){
+                connections.add(conn1.next());
+            }
         }
+        Direction direction = null;
+        for (int conLen = 0 ; conLen < connections.size();conLen++){
+            ApiResponse resp = new ApiResponse();
+                    if (conn == CONNECTIONS) {
+                        resp = UsergridGraph.client.queryConnection(srcType, srcId, connections.get(conLen));
+                        direction = Direction.OUT;
+                    } else {
+                        resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, connections.get(conLen));
+                        direction = Direction.IN;
+                    }
+                    List<UsergridEntity> entities = resp.getEntities();
+                    getAllEdgesForVertex(entities, connections.get(conLen), edges, direction);
+                }
     }
 
     private List<Edge> getAllEdgesForVertex(List<UsergridEntity> entities, String name, List<Edge> edges, Direction dir) {
         for (int i = 0; i < entities.size(); i++) {
             UsergridEntity e = entities.get(i);
-            String v = e.getType() + SLASH + e.getStringProperty("name");
+            String v = e.getType() + SLASH + e.getUuid().toString();
             Edge e1 = null;
             if (dir == Direction.OUT)
                 e1 = new UsergridEdge(this.getId().toString(), v, name);
@@ -194,13 +204,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
     UsergridEdge e = new UsergridEdge(this.getId().toString(), inVertex.getId().toString(), label);
     ApiResponse response = UsergridGraph.client.connectEntities(this, (UsergridVertex) inVertex, label);
-
-    //TODO: What happens when an edge between two vertices already exists? Return the existing edge?
-    ValidationUtils.serverError(response, IOException.class,"Usergrid server error");
-    ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
-    ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-    ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-    ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
+    UsergridGraph.ValidateResponseErrors(response);
 
       return e;
     }
@@ -296,32 +300,21 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                 ApiResponse responseDelete = UsergridGraph.client.deleteEntity(oldType, this.getUuid().toString());
 
                 ApiResponse response = UsergridGraph.client.createEntity(v);
-
-                ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
-                ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
+                UsergridGraph.ValidateResponseErrors(response);
                 ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-                ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
-                ValidationUtils.validateRequest(response, RuntimeException.class, "Invalid request passed to Usergrid");
-                ValidationUtils.OrgAppNotFound(response, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
                 String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
                 v.setUuid(UUID.fromString(uuid));
                 if (allOUTEdges != null) {
                     for (Object outEdge : allOUTEdges) {
                         //TODO:Create outGoing Edges for the Vertex
-
                         String[] parts = ((UsergridEdge) outEdge).getId().toString().split(SLASH);
                         String sourceName = parts[1];
                         String connectionType = parts[2];
                         String target = parts[3] + SLASH + parts[4];
                         ApiResponse responseOutEdge = UsergridGraph.client.connectEntities(v.getType(), sourceName, connectionType, target);
-
-                        ValidationUtils.serverError(responseOutEdge, IOException.class, "Usergrid server error");
-                        ValidationUtils.validateAccess(responseOutEdge, RuntimeException.class, "User forbidden from using the Usergrid resource");
+                        UsergridGraph.ValidateResponseErrors(responseOutEdge);
                         ValidationUtils.validateDuplicate(responseOutEdge, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-                        ValidationUtils.validateCredentials(responseOutEdge, RuntimeException.class, "User credentials for Usergrid are invalid");
-                        ValidationUtils.validateRequest(responseOutEdge, RuntimeException.class, "Invalid request passed to Usergrid");
-                        ValidationUtils.OrgAppNotFound(responseOutEdge, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
                     }
                 }
@@ -334,13 +327,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                         String sourceName = parts[1];
                         String connectionType = parts[2];
                         ApiResponse responseInEdge = UsergridGraph.client.connectEntities(sourceType, sourceName, connectionType, v.getId().toString());
-
-                        ValidationUtils.serverError(responseInEdge, IOException.class, "Usergrid server error");
-                        ValidationUtils.validateAccess(responseInEdge, RuntimeException.class, "User forbidden from using the Usergrid resource");
+                        UsergridGraph.ValidateResponseErrors(responseInEdge);
                         ValidationUtils.validateDuplicate(responseInEdge, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
-                        ValidationUtils.validateCredentials(responseInEdge, RuntimeException.class, "User credentials for Usergrid are invalid");
-                        ValidationUtils.validateRequest(responseInEdge, RuntimeException.class, "Invalid request passed to Usergrid");
-                        ValidationUtils.OrgAppNotFound(responseInEdge, RuntimeException.class, "Organization or application does not exist in Usergrid");
 
                     }
                 }
