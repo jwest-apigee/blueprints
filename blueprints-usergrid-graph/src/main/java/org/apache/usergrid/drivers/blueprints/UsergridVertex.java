@@ -1,25 +1,21 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
-import org.apache.commons.collections.iterators.ArrayIterator;
-import org.apache.commons.collections.iterators.ArrayListIterator;
 import org.apache.usergrid.java.client.Client;
 import org.apache.usergrid.java.client.model.UsergridEntity;
 import org.apache.usergrid.java.client.response.ApiResponse;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
  * Created by ApigeeCorporation on 6/29/15.
  */
 public class UsergridVertex extends UsergridEntity implements Vertex {
-    private static String CONNECTIONING = "connecting";
+    private static String CONNECTING = "connecting";
     private static String defaultType;
     private static String METADATA = "metadata";
     private static String CONNECTIONS = "connections";
@@ -60,43 +56,42 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         String srcType = this.getType();
         String srcId = this.getUuid().toString();
         List<Edge> edgesSet1 = new ArrayList<Edge>();
-//        List<Edge> edgesSet2 = new ArrayList<Edge>();
+
 
         ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
         UsergridGraph.ValidateResponseErrors(response);
 
+        //Gets the vertex for which edges are to be found
         UsergridEntity trgEntity = response.getFirstEntity();
 
         switch (direction) {
             case OUT:
                 if (!checkHasEdges(trgEntity, CONNECTIONS)) {
+                    //Returns empty list if there are no edges
                     return new ArrayList<Edge>();
                 }
                 IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
                 return edgesSet1;
 
             case IN:
-                if (!checkHasEdges(trgEntity, CONNECTIONING)) {
+                if (!checkHasEdges(trgEntity, CONNECTING)) {
                     return new ArrayList<Edge>();
                 }
-                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
                 return edgesSet1;
             case BOTH:
                 if (!checkHasEdges(trgEntity, CONNECTIONS)) {
-                    if (!checkHasEdges(trgEntity, CONNECTIONING)) {
+                    if (!checkHasEdges(trgEntity, CONNECTING)) {
                         return new ArrayList<Edge>();
                     }
-                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                    IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
                     return edgesSet1;
-                } else if (!checkHasEdges(trgEntity, CONNECTIONING)) {
+                } else if (!checkHasEdges(trgEntity, CONNECTING)) {
                     IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
                     return edgesSet1;
                 }
-
-                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONING, labels);
+                IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
                 IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
-                return edgesSet1;
-
         }
         return new ArrayList<Edge>();
     }
@@ -112,12 +107,13 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
     private void IterarteOverEdges(UsergridEntity trgUUID, String srcType, String srcId, List<Edge> edges, String conn, String... labels) {
         List<String> connections = new ArrayList<String>();
+        //If labels are specified
         if(labels.length != 0){
-//          System.arraycopy(labels,0,connections,0,labels.length);
             for (String label : labels){
                 connections.add(label);
             }
         }else {
+            //When labels are not specified
             Iterator<String> conn1 = trgUUID.getProperties().get(METADATA).findValue(conn).fieldNames();
             while(conn1.hasNext()){
                 connections.add(conn1.next());
@@ -130,7 +126,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                         resp = UsergridGraph.client.queryConnection(srcType, srcId, connections.get(conLen));
                         direction = Direction.OUT;
                     } else {
-                        resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTIONING, connections.get(conLen));
+                        resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTING, connections.get(conLen));
                         direction = Direction.IN;
                     }
                     List<UsergridEntity> entities = resp.getEntities();
@@ -152,6 +148,43 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         return edges;
     }
 
+    private void IterarteOverVertices(UsergridEntity trgEntity, String srcType, String srcId, List<Vertex> vertexSet, String conn, String... labels) {
+        List<String> connections = new ArrayList<String>();
+        //If labels are specified
+        if(labels.length != 0){
+            for (String label : labels){
+                connections.add(label);
+            }
+        }else {
+            //When labels are not specified, Example of conn1 is 'likes', 'hates' and other such verbs associated with the vertex
+            Iterator<String> conn1 = trgEntity.getProperties().get(METADATA).findValue(conn).fieldNames();
+            while(conn1.hasNext()){
+                connections.add(conn1.next());
+            }
+        }
+        for (int conLen = 0 ; conLen < connections.size();conLen++){
+            ApiResponse resp = new ApiResponse();
+            if (conn == CONNECTIONS) {
+                resp = UsergridGraph.client.queryConnection(srcType, srcId, connections.get(conLen));
+            } else {
+                resp = UsergridGraph.client.queryConnection(srcType, srcId, CONNECTING, connections.get(conLen));
+            }
+            List<UsergridEntity> entities = resp.getEntities();
+            getAllVerticesForVertex(entities, vertexSet);
+        }
+    }
+
+    private List<Vertex> getAllVerticesForVertex(List<UsergridEntity> entities, List<Vertex> vertices){
+        for (int i = 0; i < entities.size(); i++) {
+            UsergridEntity e = entities.get(i);
+            String v = e.getType() + SLASH + e.getUuid().toString();
+            Vertex e1 = null;
+            e1 = new UsergridVertex(v);
+            vertices.add(e1);
+        }
+        return vertices;
+    }
+
 
     /**
      * This gets all the adjacent vertices connected to the vertex by an edge specified by a particular direction and label
@@ -168,8 +201,53 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
          3)Get the vertices at the other end of the edge
          4) Return an iterable of vertices
          */
-        return null;
+
+        ValidationUtils.validateNotNull(direction, IllegalArgumentException.class, "Direction for getEdges cannot be null");
+        ValidationUtils.validateStringNotEmpty(labels.toString(), RuntimeException.class, "Label for edge in getEdges cannot be empty");
+
+        String srcType = this.getType().toString();
+        String srcId = this.getUuid().toString();
+        List<Vertex> vertexSet = new ArrayList<Vertex>();
+
+        ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+        UsergridGraph.ValidateResponseErrors(response);
+
+        //Gets the vertex for which edges are to be found
+        UsergridEntity trgEntity = response.getFirstEntity();
+
+        switch (direction) {
+            case OUT:
+                if (!checkHasEdges(trgEntity, CONNECTIONS)) {
+                    //Returns empty list if there are no adjacent vertices
+                    return new ArrayList<Vertex>();
+                }
+                IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTIONS, labels);
+                return vertexSet;
+
+            case IN:
+                if (!checkHasEdges(trgEntity, CONNECTING)) {
+                    return new ArrayList<Vertex>();
+                }
+                IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                return vertexSet;
+            case BOTH:
+                if (!checkHasEdges(trgEntity, CONNECTIONS)) {
+                    if (!checkHasEdges(trgEntity, CONNECTING)) {
+                        return new ArrayList<Vertex>();
+                    }
+                    IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                    return vertexSet;
+                } else if (!checkHasEdges(trgEntity, CONNECTING)) {
+                    IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                    return vertexSet;
+                }
+                IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                return vertexSet;
+
+        }
+        return new ArrayList<Vertex>();
     }
+
 
     /**
      * Generate a query object that can be
