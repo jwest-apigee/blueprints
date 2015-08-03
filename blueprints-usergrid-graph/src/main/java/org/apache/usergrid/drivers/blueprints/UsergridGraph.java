@@ -560,7 +560,7 @@ public class UsergridGraph implements Graph {
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
 
         //updating the source and target vertex to reflect new properties.
-        response = client.getEntity(source.getType(),source.getUuid().toString());
+        response = client.getEntity(source.getType(), source.getUuid().toString());
         ValidateResponseErrors(response);
         Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
         for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
@@ -773,6 +773,13 @@ public class UsergridGraph implements Graph {
     3. Error handling if closeConnection() failed.
     */
         assertClientInitialized();
+
+        //TODO: Delete if we do not want to clean up vertices during shutdown
+        Iterable<Vertex> vertices = this.getVertices();
+        for (Vertex vertex : vertices){
+            this.removeVertex(vertex);
+        }
+
         log.debug("DEBUG shutdown(): making the client null");
         client = null;
         //TODO : Get shutdown() of client reviewed.
