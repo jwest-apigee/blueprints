@@ -205,18 +205,37 @@ public class UsergridEdge extends Connection implements Edge {
     return null;
   }
 
-
-  @Override
-  public int hashCode() {
-    final int hashCode = this.getId().hashCode();
-    return hashCode;
-
-  }
-
   @Override
   public boolean equals(Object obj) {
-    final UsergridEdge other = (UsergridEdge) obj;
-    return this.getId().equals(other.getId());
+    if (obj instanceof UsergridEdge){
+      UsergridEdge edge = (UsergridEdge)obj;
+      boolean flag;
+      if (this.getId().equals(edge.getId()))
+        flag = true;
+      else
+        flag = false;
+      return flag;
+
+    }
+    else if (obj instanceof Edge) {
+      Vertex v = (Vertex) obj;
+      boolean flag;
+      if (this.getId().equals(v.getId()))
+        flag = true;
+      else
+        flag = false;
+
+      return flag;
+    }
+
+    throw new IllegalArgumentException("Couldn't compare class '" + obj.getClass() + "'");
+  }
+
+
+  @Override
+  public int hashCode(){
+    int hashCode = this.getId().hashCode();
+    return hashCode;
   }
 
   protected void assertClientInitialized() {

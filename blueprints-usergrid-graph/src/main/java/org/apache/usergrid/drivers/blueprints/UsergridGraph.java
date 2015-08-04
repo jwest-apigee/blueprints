@@ -59,7 +59,7 @@ public class UsergridGraph implements Graph {
         /**
          * Does the graph allow an edge to have the same out/tail and in/head vertex?
          */
-        features.supportsSelfLoops = Boolean.FALSE;
+        features.supportsSelfLoops = Boolean.TRUE;
 
         /**
          * Does the graph allow any serializable object to be used as a property value for a graph element?
@@ -172,7 +172,7 @@ public class UsergridGraph implements Graph {
         /**
          * Does the graph support graph.getEdges()?
          */
-        features.supportsEdgeIteration = Boolean.FALSE;
+        features.supportsEdgeIteration = Boolean.TRUE;
 
         /**
          * Does the graph support graph.getVertices()?
@@ -607,9 +607,12 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateNotNull(id, IllegalArgumentException.class, "ID specified cannot be of type null");
 
         if (id instanceof String) {
-
             ValidationUtils.validateStringNotEmpty(id.toString(), RuntimeException.class, "ID cannot be an empty string");
             String[] properties = ((String) id).split(CONNECTOR);
+            if(properties.length != 5) {
+                log.error("Object id passed is invalid");
+                return null;
+            }
             String label = properties[2];
 
             //Check if the edge is valid.
@@ -631,7 +634,9 @@ public class UsergridGraph implements Graph {
 
             return connection;
         }
-        throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+
+        log.error("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        return  null;
     }
 
 
@@ -672,32 +677,23 @@ public class UsergridGraph implements Graph {
     }
 
     /**
-     * Not Implemented for Usergrid
-     *
+     * Returns all the edges in the graph.
      * @return
      */
 
     public Iterable<Edge> getEdges() {
-
         Map<String, Object> paramsMap = new HashMap<String, Object>();
         paramsMap.put(LIMIT, entityRetrivalCount);
         List<Edge> allEdges = new ArrayList<Edge>();
         Iterator<Map.Entry<String, JsonNode>> collectionList;
-        Map.Entry<String, JsonNode> collection;
-        String collectionName;
         collectionList = getAllCollections();
-
         while (collectionList.hasNext()) {
-            collection = collectionList.next();
-            collectionName = collection.getKey();
-            //TODO : exclude "roles" entity.Is there a standard list of collections we can ignore?
-            if (collectionName != ROLES && collectionName != "events")
-            {
+            Map.Entry<String, JsonNode> collection = collectionList.next();
+            String collectionName = collection.getKey();
+            if (! ignoreList.contains(collectionName))
                 allEdges.addAll(GetEdgesForCollection(collectionName, paramsMap));
-            }
         }
         return allEdges;
-//        throw new UnsupportedOperationException("Not supported for Usergrid");
     }
 
 
@@ -720,9 +716,7 @@ public class UsergridGraph implements Graph {
             return new ArrayList<Edge>();
         }
         while (entities.size() > next) {
-            String type = entities.get(next).getType();
-            String StringUUID = entities.get(next).getUuid().toString();
-            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
+            Vertex ugvertex = CreateVertexFromEntity(entities.get(next));
             Iterable<Edge> edges = ugvertex.getEdges(Direction.OUT);
             if (edges != null) {
                 for (Edge edge : edges)
@@ -773,8 +767,12 @@ public class UsergridGraph implements Graph {
     3. Error handling if closeConnection() failed.
     */
         assertClientInitialized();
+        //TODO: Delete if we do not want to clean up vertices during shutdown
+        Iterable<Vertex> vertices = this.getVertices();
+        for (Vertex vertex : vertices){
+            this.removeVertex(vertex);
+        }
         log.debug("DEBUG shutdown(): making the client null");
         client = null;
-        //TODO : Get shutdown() of client reviewed.
     }
 }
