@@ -221,8 +221,9 @@ public class UsergridGraph implements Graph {
         //TODO: Change to appropriate location
         ValidationUtils.validateNotNull(config, IllegalArgumentException.class, "Configuration for Usergrid cannot be null");
         this.defaultType = config.getString("usergrid.defaultType");
-        this.entityRetrivalCount = config.getInt("usergrid.entityRetrivalCount");
-        log.debug("UsergridGraph() : Setting the default type to : " + this.defaultType);
+        String retrivalCount = config.getString("usergrid.entityRetrivalCount");
+        this.entityRetrivalCount = Integer.parseInt(retrivalCount);
+                log.debug("UsergridGraph() : Setting the default type to : " + this.defaultType);
 
         //Configuration for Usergrid
         String orgName = config.getString("usergrid.organization");
