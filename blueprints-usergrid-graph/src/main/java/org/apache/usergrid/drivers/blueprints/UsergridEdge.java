@@ -131,7 +131,7 @@ public class UsergridEdge extends Connection implements Edge {
           get the connecting entity
                 (ex : entity1.getProperties().get("metadata").get("connecting"))
       else :
-          //TODO : for BOTH
+          Throw Illegal arguement exception
      */
 
     String edgeId = this.getId().toString();
@@ -147,6 +147,8 @@ public class UsergridEdge extends Connection implements Edge {
       type = properties[3];
       log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
     }
+    else throw new IllegalArgumentException("Direction for getVertex for an edge cannot be BOTH");
+
     String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
     Map<String, JsonNode> vertexProperties = new HashMap<String, JsonNode>();
     vertexProperties = response.getFirstEntity().getProperties();
