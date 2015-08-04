@@ -146,6 +146,7 @@ public class EdgeTestSuite extends TestSuite {
         graph.shutdown();
     }
 
+    /*
     public void testGetEdgesByLabel() {
         Graph graph = graphTest.generateGraph();
 
@@ -168,7 +169,7 @@ public class EdgeTestSuite extends TestSuite {
         }
 
         graph.shutdown();
-    }
+    }*/
 
     public void testGetNonExistantEdges() {
         Graph graph = graphTest.generateGraph();

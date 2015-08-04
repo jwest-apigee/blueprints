@@ -138,12 +138,16 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     private List<Edge> getAllEdgesForVertex(List<UsergridEntity> entities, String name, List<Edge> edges, Direction dir) {
         for (int i = 0; i < entities.size(); i++) {
             UsergridEntity e = entities.get(i);
-            String v = e.getType() + SLASH + e.getUuid().toString();
+            String vertex;
+            if(e.getStringProperty("name") != null )
+                vertex = e.getType() + SLASH + e.getStringProperty("name");
+            else
+                vertex = e.getType() + SLASH + e.getUuid().toString();
             Edge e1 = null;
             if (dir == Direction.OUT)
-                e1 = new UsergridEdge(this.getId().toString(), v, name);
+                e1 = new UsergridEdge(this.getId().toString(), vertex, name);
             else if (dir == Direction.IN)
-                e1 = new UsergridEdge(v, this.getId().toString(), name);
+                e1 = new UsergridEdge(vertex, this.getId().toString(), name);
             edges.add(e1);
         }
         return edges;
