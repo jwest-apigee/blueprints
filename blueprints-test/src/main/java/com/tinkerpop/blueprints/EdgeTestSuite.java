@@ -76,7 +76,7 @@ public class EdgeTestSuite extends TestSuite {
         for (int i = 0; i < edgeCount; i++) {
             Vertex out = graph.addVertex(graphTest.convertId("" + counter++));
             Vertex in = graph.addVertex(graphTest.convertId("" + counter++));
-            graph.addEdge(null, out, in, graphTest.convertLabel(UUID.randomUUID().toString()));
+            graph.addEdge(null, out, in, graphTest.convertLabel(UUID.randomUUID().toString())+"baas");
         }
         printPerformance(graph.toString(), vertexCount + edgeCount, "elements added", this.stopWatch());
         if (graph.getFeatures().supportsEdgeIteration) {

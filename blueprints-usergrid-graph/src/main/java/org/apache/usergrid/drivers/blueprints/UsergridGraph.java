@@ -242,12 +242,17 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateStringNotEmpty(orgName, RuntimeException.class, "Organization name cannot be empty in Usergrid");
         ValidationUtils.validateStringNotEmpty(appName, RuntimeException.class, "Application name cannot be empty in Usergrid");
 
-        if (apiUrl == null)
-            Usergrid.initialize(apiUrl, orgName, appName);
-        else
-            Usergrid.initialize(apiUrl, orgName, appName);
-        log.debug("UsergridGraph() : Initializing the SingletonClient");
-
+        try {
+            if (apiUrl == null)
+                Usergrid.initialize(apiUrl, orgName, appName);
+            else
+                System.out.println(apiUrl + " : " + orgName + " : " + appName);
+                Usergrid.initialize(apiUrl, orgName, appName);
+            log.debug("UsergridGraph() : Initializing the SingletonClient");
+        }
+        catch (Exception e){
+            System.out.println( "caught the exception : " + e);
+        }
         //Get an instance of the client
         client = Usergrid.getInstance();
         ValidationUtils.validateNotNull(client, IllegalArgumentException.class, "Client could not be instantiated.");
