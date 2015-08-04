@@ -560,7 +560,7 @@ public class UsergridGraph implements Graph {
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
 
         //updating the source and target vertex to reflect new properties.
-        response = client.getEntity(source.getType(),source.getUuid().toString());
+        response = client.getEntity(source.getType(), source.getUuid().toString());
         ValidateResponseErrors(response);
         Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
         for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
