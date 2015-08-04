@@ -92,14 +92,15 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                 }
                 IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTING, labels);
                 IterarteOverEdges(trgEntity, srcType, srcId, edgesSet1, CONNECTIONS, labels);
+                return edgesSet1;
         }
         return new ArrayList<Edge>();
     }
 
 
 
-    private boolean checkHasEdges(UsergridEntity trgUUID, String CONNECTIONS) {
-        if (trgUUID.getProperties().get(METADATA).findValue(CONNECTIONS) == null)
+    private boolean checkHasEdges(UsergridEntity trgUUID, String conn) {
+        if (trgUUID.getProperties().get(METADATA).findValue(conn) == null)
             return false;
         else
             return true;
@@ -180,11 +181,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
     private List<Vertex> getAllVerticesForVertex(List<UsergridEntity> entities, List<Vertex> vertices){
         for (int i = 0; i < entities.size(); i++) {
-            UsergridEntity e = entities.get(i);
-            String v = e.getType() + SLASH + e.getUuid().toString();
-            Vertex e1 = null;
-            e1 = new UsergridVertex(v);
-            vertices.add(e1);
+            UsergridVertex v1 = UsergridGraph.CreateVertexFromEntity(entities.get(i));
+            vertices.add(v1);
         }
         return vertices;
     }
@@ -242,12 +240,12 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                     IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
                     return vertexSet;
                 } else if (!checkHasEdges(trgEntity, CONNECTING)) {
-                    IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                    IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTIONS, labels);
                     return vertexSet;
                 }
                 IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTING, labels);
+                IterarteOverVertices(trgEntity, srcType, srcId, vertexSet, CONNECTIONS, labels);
                 return vertexSet;
-
         }
         return new ArrayList<Vertex>();
     }

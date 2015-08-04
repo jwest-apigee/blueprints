@@ -512,7 +512,7 @@ public class UsergridGraph implements Graph {
         return allVertices;
     }
 
-    private UsergridVertex CreateVertexFromEntity(UsergridEntity entity) {
+    public static UsergridVertex CreateVertexFromEntity(UsergridEntity entity) {
         String type = entity.getType();
         UUID uuid = entity.getUuid();
         Map<String, JsonNode> vertexProperties = new HashMap<String, JsonNode>();
