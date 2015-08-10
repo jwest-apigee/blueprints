@@ -39,10 +39,9 @@ public class UsergridEdge extends Connection implements Edge {
     super.setLabel(label);
   }
 
-
   /**
    * sets the property id for the given connection as
-   * <sourecetype:uuid>/<label>/<targettype:uuid>
+   * sourecetype/source_uuid/label/targettype/target_uuid
    *  @param sourceID
    * @param label
    * @param targetId
@@ -54,7 +53,7 @@ public class UsergridEdge extends Connection implements Edge {
   }
 
   /**
-   * should return the Id for the given edge. <sourecetype:uuid>/<label>/<targettype:uuid>
+   * should return the Id for the given edge. sourecetype/source_uuid/label/targettype/target_uuid
    *
    * @return : string - the id of the edge.
    */
@@ -69,7 +68,6 @@ public class UsergridEdge extends Connection implements Edge {
     return super.getPropertyId();
   }
 
-
   /**
    * Return the label associated with the edge. in the form SourceId/Label/TargetId
    *
@@ -81,7 +79,6 @@ public class UsergridEdge extends Connection implements Edge {
     */
     return super.getLabel();
   }
-
 
   /**
    * removes the edge
@@ -116,9 +113,10 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * Return the tail/out or head/in vertex.
    *
-   * @param direction
+   * @param direction of the edges to be retireved.
    * @return the vertex
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException : throws exception if the arguments passed are invlaid.
+   *
    */
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
     /*
@@ -162,16 +160,14 @@ public class UsergridEdge extends Connection implements Edge {
 
     log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
     log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
-      return v; // return target vertex
-
+    return v; // return target vertex
   }
 
   /**
    * Not implementing for the usergrid blueprints.
    *
-   * @param key
-   * @param <T>
-   * @return
+   * @param key the property of the edge to be retrieved.
+   * @return curently it returns null. Edges with properties is not implemented.
    */
   public <T> T getProperty(String key) {
     return null;
@@ -180,7 +176,7 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * Not implementing for the usergrid blueprints.
    *
-   * @return
+   * @return returns null.
    */
   public Set<String> getPropertyKeys() {
     return null;
@@ -189,8 +185,8 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * Not implementing for the usergrid blueprints.
    *
-   * @param key
-   * @param value
+   * @param key : key of the property.
+   * @param value : value of the property.
    */
   public void setProperty(String key, Object value) {
 
@@ -199,9 +195,8 @@ public class UsergridEdge extends Connection implements Edge {
   /**
    * Not implementing for the usergrid blueprints.
    *
-   * @param key
-   * @param <T>
-   * @return
+   * @param key  of the property to be removed.
+   * @return returns null.
    */
   public <T> T removeProperty(String key) {
     return null;
@@ -229,10 +224,8 @@ public class UsergridEdge extends Connection implements Edge {
 
       return flag;
     }
-
     throw new IllegalArgumentException("Couldn't compare class '" + obj.getClass() + "'");
   }
-
 
   @Override
   public int hashCode(){

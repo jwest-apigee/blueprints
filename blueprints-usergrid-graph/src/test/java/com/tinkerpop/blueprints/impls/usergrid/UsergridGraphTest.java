@@ -3,10 +3,8 @@ package com.tinkerpop.blueprints.impls.usergrid;
 
 import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.impls.GraphTest;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.usergrid.drivers.blueprints.UsergridGraph;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -17,29 +15,21 @@ public class UsergridGraphTest extends GraphTest {
 
     @Override
     public Graph generateGraph() {
-        return generateGraph("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+        return generateGraph("/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
     }
 
     @Override
-    public Graph generateGraph(String s) {
-//        PropertiesConfiguration conf = null;
-//        try {
-//            conf = new PropertiesConfiguration(s);
-//        } catch (ConfigurationException e) {
-//            e.printStackTrace();
-//        }
-//        UsergridGraph graph = new UsergridGraph(conf);
-//        return graph;
-        Graph usergridgraph = GraphFactory.open(s);
+    public Graph generateGraph(String filepath) {
+        Graph usergridgraph = GraphFactory.open(filepath);
         return usergridgraph;
     }
 
 
-//    public void testVertexTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new VertexTestSuite(this));
-//        printTestPerformance("VertexTestSuite", this.stopWatch());
-//    }
+    public void testVertexTestSuite() throws Exception {
+        this.stopWatch();
+        doTestSuite(new VertexTestSuite(this));
+        printTestPerformance("VertexTestSuite", this.stopWatch());
+    }
 
     public void testEdgeTestSuite() throws Exception {
         this.stopWatch();
@@ -60,7 +50,16 @@ public class UsergridGraphTest extends GraphTest {
             if (method.getName().startsWith("test")) {
                 System.out.println("Testing " + method.getName() + "...");
                 Graph graph = this.generateGraph();
-                method.invoke(testSuite);
+                try {
+                    method.invoke(testSuite);
+                }
+                catch (InvocationTargetException e ){
+                    System.out.println("InvocationTargetException exception : "+ e);
+                }
+                catch (Exception e)
+                {
+                    System.out.println("other exception : " + e);
+                }
                 System.out.println("exectuted tests for : " + method.getName());
                 //graph.shutdown();
             }
