@@ -247,7 +247,7 @@ public class UsergridGraph implements Graph {
             if (apiUrl == null)
                 Usergrid.initialize(apiUrl, orgName, appName);
             else
-                System.out.println(apiUrl + " : " + orgName + " : " + appName);
+//                System.out.println(apiUrl + " : " + orgName + " : " + appName);
                 Usergrid.initialize(apiUrl, orgName, appName);
             log.debug("UsergridGraph() : Initializing the SingletonClient");
         }
@@ -267,7 +267,7 @@ public class UsergridGraph implements Graph {
     /**
      * This returns all the features that the Blueprint supports for Usergrid.
      *
-     * @return
+     * @return all the features that the Blueprint supports for Usergrid.
      */
     public Features getFeatures() {
         log.debug("getFeatures() : The features set are : " + features);
@@ -364,8 +364,8 @@ public class UsergridGraph implements Graph {
      * This gets a particular Vertex (entity) using the ID of the vertex. The ID is in the form of "type:UUID",
      * where type is the collection type and UUId is the unique ID generated for each entity
      *
-     * @param id
-     * @return
+     * @param id : id of the vertex to retrieve.
+     * @return returns the vertex with specified ID.
      */
     public Vertex getVertex(Object id) {
     /*
@@ -410,7 +410,7 @@ public class UsergridGraph implements Graph {
     /**
      * This deletes a particular vertex (entity) by taking the vertex as an identifier
      *
-     * @param vertex
+     * @param vertex : vertex to be removed.
      */
     public void removeVertex(Vertex vertex) {
 
@@ -453,9 +453,9 @@ public class UsergridGraph implements Graph {
      * }
      * Return an iterable to all the vertices in the graph that have a particular key/value property.
      *
-     * @param key
-     * @param value
-     * @return
+     * @param key : unsupported method
+     * @param value : unsupported method
+     * @return : unsupported method
      */
     public Iterable<Vertex> getVertices(String key, Object value) {
         throw new UnsupportedOperationException("Not Supported in Usergrid");
@@ -537,11 +537,11 @@ public class UsergridGraph implements Graph {
     /**
      * This function adds a connection (or an edge) between two vertices
      *
-     * @param id
-     * @param outVertex
-     * @param inVertex
-     * @param label
-     * @return
+     * @param id : id if the edge.
+     * @param outVertex : source edge.
+     * @param inVertex : target edge.
+     * @param label : name of the edge.
+     * @return : newly formed edge.
      */
     public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
 
@@ -596,10 +596,10 @@ public class UsergridGraph implements Graph {
 
     /**
      * This function returns a connection (or edge). Takes the Connection id as an input which is specified as
-     * SourceVertexId-->connection-->TargetVertexId
+     * SourceVertexId/connection/TargetVertexId
      *
-     * @param id
-     * @return
+     * @param id : id of the edge to be retieved.
+     * @return : the edge.
      */
     public Edge getEdge(Object id) {
 
@@ -648,9 +648,9 @@ public class UsergridGraph implements Graph {
 
     /**
      * This function removes the connection between two entities in the graph. Takes the Connection
-     * id as an input which is specified as SourceVertexId-->connection-->TargetVertexId
+     * id as an input which is specified as SourceVertexId/connection/TargetVertexId
      *
-     * @param edge
+     * @param edge : edge to remove.
      */
     public void removeEdge(Edge edge) {
 
@@ -684,7 +684,7 @@ public class UsergridGraph implements Graph {
 
     /**
      * Returns all the edges in the graph.
-     * @return
+     * @return : all the edges in the graph.
      */
 
     public Iterable<Edge> getEdges() {
@@ -740,9 +740,9 @@ public class UsergridGraph implements Graph {
      * Not implemented for Usergrid.
      * Return an iterable to all the edges in the graph that have a particular key/value property.
      *
-     * @param key
-     * @param value
-     * @return
+     * @param key : Not implemented
+     * @param value : Not implemented
+     * @return : unsuported method.
      */
 
     public Iterable<Edge> getEdges(String key, Object value) {
