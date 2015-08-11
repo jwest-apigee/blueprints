@@ -3,6 +3,7 @@ package org.apache.usergrid.drivers.blueprints;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.tinkerpop.blueprints.*;
+import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Usergrid;
 import org.apache.usergrid.java.client.model.UsergridEntity;
@@ -751,7 +752,7 @@ public class UsergridGraph implements Graph {
 
 
     public GraphQuery query() {
-        return null;
+        return new DefaultGraphQuery(this);
     }
 
 
