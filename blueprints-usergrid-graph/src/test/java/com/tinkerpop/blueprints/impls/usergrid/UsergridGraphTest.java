@@ -15,7 +15,7 @@ public class UsergridGraphTest extends GraphTest {
 
     @Override
     public Graph generateGraph() {
-        return generateGraph("/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+        return generateGraph("/var/lib/jenkins/workspace/usergrid-blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
     }
 
     @Override
