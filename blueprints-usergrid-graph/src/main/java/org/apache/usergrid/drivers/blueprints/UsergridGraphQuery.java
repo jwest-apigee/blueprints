@@ -8,25 +8,25 @@ import com.tinkerpop.blueprints.*;
 public class UsergridGraphQuery implements GraphQuery {
 
   /**
-   * @param key
-   * @return
+   * @param key : method not miplemented.
+   * @return null
    */
   public GraphQuery has(String key) {
     return null;
   }
 
   /**
-   * @param key
-   * @return
+   * @param key : method not miplemented.
+   * @return : null
    */
   public GraphQuery hasNot(String key) {
     return null;
   }
 
   /**
-   * @param key
-   * @param value
-   * @return
+   * @param key : method not miplemented.
+   * @param value : method not miplemented.
+   * @return null
    */
   public GraphQuery has(String key, Object value) {
     return null;
@@ -42,10 +42,10 @@ public class UsergridGraphQuery implements GraphQuery {
   }
 
   /**
-   * @param key
-   * @param predicate
-   * @param value
-   * @return
+   * @param key : method not miplemented.
+   * @param predicate : method not miplemented.
+   * @param value : method not miplemented.
+   * @return null
    */
   public GraphQuery has(String key, Predicate predicate, Object value) {
     return null;
@@ -63,33 +63,33 @@ public class UsergridGraphQuery implements GraphQuery {
   }
 
   /**
-   * @param key
-   * @param startValue
-   * @param endValue
-   * @param <T>
-   * @return
+   * @param key : method not miplemented.
+   * @param startValue : method not miplemented.
+   * @param endValue : method not miplemented.
+   * @param <T> : method not miplemented.
+   * @return null
    */
   public <T extends Comparable<?>> GraphQuery interval(String key, T startValue, T endValue) {
     return null;
   }
 
   /**
-   * @param limit
-   * @return
+   * @param limit : method not miplemented.
+   * @return null
    */
   public GraphQuery limit(int limit) {
     return null;
   }
 
   /**
-   * @return
+   * @return null
    */
   public Iterable<Edge> edges() {
     return null;
   }
 
   /**
-   * @return
+   * @return null
    */
   public Iterable<Vertex> vertices() {
     return null;

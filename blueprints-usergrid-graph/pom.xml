@@ -35,11 +35,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.tinkerpop.blueprints</groupId>
-            <artifactId>blueprints-core</artifactId>
-            <version>${tinkerpop.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.usergrid</groupId>

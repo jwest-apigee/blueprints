@@ -37,9 +37,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      * This gets edges that are connected to the vertex in a
      * particular direction specified, and having a specific label
      *
-     * @param direction
-     * @param labels
-     * @return
+     * @param direction : direction of the edges to retrieve.
+     * @param labels : names of the edges to retrieve.
+     * @return : a list of edges.
      */
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
@@ -191,9 +191,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * This gets all the adjacent vertices connected to the vertex by an edge specified by a particular direction and label
      *
-     * @param direction
-     * @param labels
-     * @return
+     * @param direction : direction of the vertices to retrieve.
+     * @param labels : names of the vertices tp retrieve.
+     * @return : list of vertices.
      */
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         /**
@@ -255,7 +255,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      * Generate a query object that can be
      * used to fine tune which connections/entities are retrieved that are incident/adjacent to this entity.
      *
-     * @return
+     * @return null
      */
     public VertexQuery query() {
         return null;
@@ -265,9 +265,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Adds an edge to the vertex, with the target vertex specified
      *
-     * @param label
-     * @param inVertex
-     * @return
+     * @param label : name of the edge to be added.
+     * @param inVertex : connecting edge.
+     * @return : returns the new edge formed.
      */
     public Edge addEdge(String label, Vertex inVertex) {
 
@@ -292,9 +292,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Get a particular property of a vertex specified by a key
      *
-     * @param key
-     * @param <T>
-     * @return
+     * @param key :the property to retrieve for a vertex.
+     * @return : the value of the property.
      */
     public <T> T getProperty(String key) {
 
@@ -320,7 +319,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Get all the property keys for a particular vertex
      *
-     * @return
+     * @return : set of properties for the vertex.
      */
     public Set<String> getPropertyKeys() {
 
@@ -338,8 +337,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * This sets a particular value of a property using the specified key in the local object
      *
-     * @param key
-     * @param value
+     * @param key : name of the property.
+     * @param value : value of the property.
      */
     public void setLocalProperty(String key, Object value) {
 
@@ -425,9 +424,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Remove a particular property as specified by the key
      *
-     * @param key
-     * @param <T>
-     * @return
+     * @param key : name of the property to delete.
+     * @return : value of the property removed.
      */
     public <T> T removeProperty(String key) {
         T oldValue = this.getProperty(key);
@@ -448,7 +446,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * This gets the Id of the vertex
      *
-     * @return
+     * @return : the id of the vertex.
      */
     public Object getId() {
         String ObjectType = this.getType();
