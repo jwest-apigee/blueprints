@@ -10,14 +10,14 @@ import org.apache.usergrid.drivers.blueprints.UsergridGraph;
 import java.lang.reflect.Method;
 
 /**
- * Created by ayeshadastagiri on 7/13/15.
+ * Created by ApigeeCorporation on 7/13/15.
  */
 public class UsergridGraphTest extends GraphTest {
 
 
     @Override
     public Graph generateGraph() {
-        return generateGraph("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+        return generateGraph("/Users/nishitarao/dev/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
     }
 
     @Override
@@ -34,24 +34,32 @@ public class UsergridGraphTest extends GraphTest {
         return usergridgraph;
     }
 
+/*
+    public void testVertexTestSuite() throws Exception {
+        this.stopWatch();
+        doTestSuite(new VertexTestSuite(this));
+        printTestPerformance("VertexTestSuite", this.stopWatch());
+    }
 
-//    public void testVertexTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new VertexTestSuite(this));
-//        printTestPerformance("VertexTestSuite", this.stopWatch());
-//    }
+*/
 
+/*
     public void testEdgeTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new EdgeTestSuite(this));
         printTestPerformance("EdgeTestSuite", this.stopWatch());
     }
 
+*/
+
     public void testGraphTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new GraphTestSuite(this));
         printTestPerformance("GraphTestSuite", this.stopWatch());
     }
+
+
+
 
 
     @Override
