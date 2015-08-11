@@ -8,14 +8,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Created by ayeshadastagiri on 7/13/15.
+ * Created by ApigeeCorporation on 7/13/15.
  */
 public class UsergridGraphTest extends GraphTest {
 
 
     @Override
     public Graph generateGraph() {
+
         return generateGraph("/var/lib/jenkins/workspace/usergrid-blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+
     }
 
     @Override
@@ -31,17 +33,24 @@ public class UsergridGraphTest extends GraphTest {
         printTestPerformance("VertexTestSuite", this.stopWatch());
     }
 
+
+/*
     public void testEdgeTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new EdgeTestSuite(this));
         printTestPerformance("EdgeTestSuite", this.stopWatch());
     }
 
+*/
+
     public void testGraphTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new GraphTestSuite(this));
         printTestPerformance("GraphTestSuite", this.stopWatch());
     }
+
+
+
 
 
     @Override

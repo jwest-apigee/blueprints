@@ -10,10 +10,7 @@ import org.apache.usergrid.java.client.model.Connection;
 import org.apache.usergrid.java.client.response.ApiResponse;
 import org.springframework.http.HttpMethod;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by ApigeeCorporation on 6/29/15.
@@ -35,7 +32,7 @@ public class UsergridEdge extends Connection implements Edge {
   }
 
   public void setLabel(String label) {
-    log.debug("DEBUG UsergridEdge setLabel() : Setting the label to : " + label );
+    log.debug("DEBUG UsergridEdge setLabel() : Setting the label to : " + label);
     super.setLabel(label);
   }
 
@@ -48,7 +45,7 @@ public class UsergridEdge extends Connection implements Edge {
    */
   private void setId(Object sourceID, String label, Object targetId) {
     assertClientInitialized();
-    log.debug("DEBUG UsergridEdge setId() : Setting the Connection Id to : " + label );
+    log.debug("DEBUG UsergridEdge setId() : Setting the Connection Id to : " + label);
     super.setConnectionID(sourceID + CONNECTOR + label + CONNECTOR + targetId);
   }
 
@@ -170,7 +167,13 @@ public class UsergridEdge extends Connection implements Edge {
    * @return curently it returns null. Edges with properties is not implemented.
    */
   public <T> T getProperty(String key) {
-    return null;
+    if (key.toLowerCase() == "label"){
+      return (T)this.getLabel();
+    }
+    if (key.toLowerCase() == "id"||key.toLowerCase()=="connectionid"){
+      return (T)this.getId();
+    }
+    throw new IllegalArgumentException("Property not supported");
   }
 
   /**
@@ -179,7 +182,10 @@ public class UsergridEdge extends Connection implements Edge {
    * @return returns null.
    */
   public Set<String> getPropertyKeys() {
-    return null;
+    Set<String> propertyKeyList = new HashSet<String>();
+    propertyKeyList.add("label");
+    propertyKeyList.add("connectionId");
+    return  propertyKeyList;
   }
 
   /**

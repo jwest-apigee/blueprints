@@ -34,6 +34,8 @@ public class UsergridGraph implements Graph {
     private static int entityRetrivalCount;
 
     ArrayList<String> ignoreList = new ArrayList<String>();
+    Iterable<Edge> edges;
+    Iterable<Vertex> vertcies;
 
     private static String METADATA = "metadata";
     private static String COLLECTIONS = "collections";
@@ -262,6 +264,9 @@ public class UsergridGraph implements Graph {
         //Authorize the Application with the credentials provided in the Configuration file
         client.authorizeAppClient(clientId, clientSecret);
         log.debug("UsergridGraph() : Authorizing the client application. Client is initialized with the application url : " + client.getApiUrl() + client.getOrganizationId());
+
+        edges = this.getEdges();
+        vertcies = this.getVertices();
     }
 
 
@@ -774,12 +779,16 @@ public class UsergridGraph implements Graph {
     3. Error handling if closeConnection() failed.
     */
         assertClientInitialized();
-        //TODO: Delete if we do not want to clean up vertices during shutdown
         Iterable<Vertex> vertices = this.getVertices();
         for (Vertex vertex : vertices){
             this.removeVertex(vertex);
         }
         log.debug("DEBUG shutdown(): making the client null");
         client = null;
+    }
+
+    @Override
+    public String toString(){
+        return getClass().getSimpleName().toLowerCase();
     }
 }
