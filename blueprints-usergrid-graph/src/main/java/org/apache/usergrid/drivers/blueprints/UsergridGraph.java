@@ -265,8 +265,8 @@ public class UsergridGraph implements Graph {
         client.authorizeAppClient(clientId, clientSecret);
         log.debug("UsergridGraph() : Authorizing the client application. Client is initialized with the application url : " + client.getApiUrl() + client.getOrganizationId());
 
-        edges = this.getEdges();
-        vertcies = this.getVertices();
+       // edges = this.getEdges();
+        //vertcies = this.getVertices();
     }
 
 
