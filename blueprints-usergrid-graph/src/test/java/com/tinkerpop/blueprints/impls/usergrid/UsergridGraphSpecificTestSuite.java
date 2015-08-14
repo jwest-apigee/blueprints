@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
  * Created by ayeshadastagiri on 7/16/15.
  */
 public class UsergridGraphSpecificTestSuite extends TestSuite {
-    private String graphProperties = "blueprints-usergrid-graph/src/main/resources/usergrid.properties";
+    private String graphProperties = "/var/lib/jenkins/workspace/usergrid-blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties";
     private Graph graph;
     private String defaultType;
 
