@@ -34,14 +34,14 @@ public class UsergridGraphTest extends GraphTest {
     }
 
 
-/*
+
     public void testEdgeTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new EdgeTestSuite(this));
         printTestPerformance("EdgeTestSuite", this.stopWatch());
     }
 
-*/
+
 
     public void testGraphTestSuite() throws Exception {
         this.stopWatch();
