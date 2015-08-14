@@ -413,7 +413,10 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                     }
                 }
             }
-        } else {
+        } else if (value.equals(null)&&this.getProperty(key).equals(null)) {
+            throw new IllegalArgumentException("Value for property that does not exist cannot be null");
+        }
+        else {
             setLocalProperty(key, value);
             super.save();
         }
