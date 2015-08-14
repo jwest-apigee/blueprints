@@ -17,6 +17,7 @@ import javax.ws.rs.NotAuthorizedException;
 
 /**
  * Created by ApigeeCorporation on 6/29/15.
+ * A Usergrid Graph is a container object for a collection of vertices and a collection edges.
  */
 public class UsergridGraph implements Graph {
 
@@ -24,7 +25,7 @@ public class UsergridGraph implements Graph {
     private static final String LIMIT = "limit";
     private static final String EVENTS = "events" ;
     private static final String HTTP_GET = "GET";
-    private static final String CURSOR = "cursor";
+    private static final String STRING_CURSOR = "cursor";
     private static final String ACTIVITIES = "activities";
     private static final String USERS = "users";
     private static final String ASSETS = "assets";
@@ -46,7 +47,6 @@ public class UsergridGraph implements Graph {
     public static final String STRING_UUID = "uuid";
     public static final String STRING_NAME = "name";
     public static final String STRING_TYPE = "type";
-    public static final String CONNECTOR = "/";
     public static final String UNAUTHORIZED = "Unauthorized";
 
     private static Features features;
@@ -250,13 +250,13 @@ public class UsergridGraph implements Graph {
             if (apiUrl == null)
                 Usergrid.initialize(apiUrl, orgName, appName);
             else
-//                System.out.println(apiUrl + " : " + orgName + " : " + appName);
                 Usergrid.initialize(apiUrl, orgName, appName);
             log.debug("UsergridGraph() : Initializing the SingletonClient");
         }
         catch (Exception e){
             System.out.println( "caught the exception : " + e);
         }
+
         //Get an instance of the client
         client = Usergrid.getInstance();
         ValidationUtils.validateNotNull(client, IllegalArgumentException.class, "Client could not be instantiated.");
@@ -271,9 +271,9 @@ public class UsergridGraph implements Graph {
 
 
     /**
-     * This returns all the features that the Blueprint supports for Usergrid.
+     * This returns all the features that the Blueprints supports for Usergrid.
      *
-     * @return all the features that the Blueprint supports for Usergrid.
+     * @return Returns all the features that the Blueprint supports for Usergrid.
      */
     public Features getFeatures() {
         log.debug("getFeatures() : The features set are : " + features);
@@ -282,10 +282,9 @@ public class UsergridGraph implements Graph {
 
 
     /**
-     * This calls the client and creates a new entity "type:name". The collection for the entity is as specified
-     * by 'type' and 'name' is the name of the entity. It returns the newly created vertex.
-     *
-     * @param id - The value of id.toString would be used for the name
+     * This creates a new vertex of type default, unless specified by passing type in the ID "type/name".
+     * If the vertex withe  particular ID already exists, it returns that vertex.
+     * @param id - ID is of type object and can be null
      * @return the newly created vertex
      */
     public Vertex addVertex(Object id) {
@@ -346,7 +345,7 @@ public class UsergridGraph implements Graph {
         }
         else
         {
-        log.error("ERROR addVertex(): id passed is in an invalid format.");
+        log.error("ERROR addVertex(): ID passed is in an invalid format.");
         throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
         }
 
@@ -367,16 +366,15 @@ public class UsergridGraph implements Graph {
 
 
     /**
-     * This gets a particular Vertex (entity) using the ID of the vertex. The ID is in the form of "type:UUID",
-     * where type is the collection type and UUId is the unique ID generated for each entity
+     * This gets a particular Vertex (entity) using the ID of the vertex.
      *
-     * @param id : id of the vertex to retrieve.
-     * @return returns the vertex with specified ID.
+     * @param id : ID of the vertex to retrieve. The ID is in the form of "type/UUID" or "type/name"
+     * @return returns the vertex with specified ID and given type.
      */
     public Vertex getVertex(Object id) {
     /*
     1) Check if client is initialized
-    2) Check that id is of supported type, else throw IllegalArgumentException error
+    2) Check that ID is of supported type, else throw IllegalArgumentException error
     3) Get and return the entity - Query queryEntitiesRequest(HttpMethod method,Map<String,
     Object> params, Object data, String... segments) in org.apache.usergrid.java.client
     4) Return null if no vertex is referenced by the identifier
@@ -386,8 +384,8 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateNotNull(id, IllegalArgumentException.class, "id cannot be of type null");
 
         if (id instanceof String) {
-            log.debug("DEBUG getVertex(): id is an instance of sting");
-            ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "id cannot be an empty string");
+            log.debug("DEBUG getVertex(): ID is an instance of sting");
+            ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "ID cannot be an empty string");
             String type;
             String StringUUID;
             if (((String) id).contains(SLASH)) {
@@ -409,7 +407,7 @@ public class UsergridGraph implements Graph {
             return ugvertex;
 
         }
-        throw new IllegalArgumentException("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        throw new IllegalArgumentException("Supplied ID class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
 
     }
 
@@ -454,9 +452,7 @@ public class UsergridGraph implements Graph {
     }
 
     /**
-     * {
-     * throw new UnsupportedOperationException("Not supported for Usergrid");
-     * }
+     * Unsupported for Usergrid
      * Return an iterable to all the vertices in the graph that have a particular key/value property.
      *
      * @param key : unsupported method
@@ -467,12 +463,12 @@ public class UsergridGraph implements Graph {
         throw new UnsupportedOperationException("Not Supported in Usergrid");
     }
 
+
     /**
-     * Returns an iterable to all the vertices in the graph.
+     * Returns an iterable to all the vertices in the graph for all collection types.
      *
      * @return : iterable to all the vertices in the graph
      */
-
     public Iterable<Vertex> getVertices() {
         Map<String, Object> paramsMap = new HashMap<String, Object>();
         paramsMap.put(LIMIT, entityRetrivalCount);
@@ -495,7 +491,7 @@ public class UsergridGraph implements Graph {
        if (responseEntities.getEntities().size() != 0) {
             AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
             while (responseEntities.getCursor() != null) {
-                paramsMap.put(CURSOR, responseEntities.getCursor());
+                paramsMap.put(STRING_CURSOR, responseEntities.getCursor());
                 responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
                 ValidateResponseErrors(responseEntities);
                 AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
@@ -543,10 +539,10 @@ public class UsergridGraph implements Graph {
     /**
      * This function adds a connection (or an edge) between two vertices
      *
-     * @param id : id if the edge.
-     * @param outVertex : source edge.
-     * @param inVertex : target edge.
-     * @param label : name of the edge.
+     * @param id : ID if the edge.
+     * @param outVertex : source Vertex.
+     * @param inVertex : target Vertex.
+     * @param label : name or label of the edge.
      * @return : newly formed edge.
      */
     public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
@@ -601,11 +597,11 @@ public class UsergridGraph implements Graph {
     }
 
     /**
-     * This function returns a connection (or edge). Takes the Connection id as an input which is specified as
+     * This function returns a connection (or edge). Takes the Connection ID as an input which is specified as
      * SourceVertexId/connection/TargetVertexId
      *
-     * @param id : id of the edge to be retieved.
-     * @return : the edge.
+     * @param id : ID of the edge to be retrieved.
+     * @return : the edge whose ID is passed.
      */
     public Edge getEdge(Object id) {
 
@@ -620,9 +616,9 @@ public class UsergridGraph implements Graph {
 
         if (id instanceof String) {
             ValidationUtils.validateStringNotEmpty(id.toString(), RuntimeException.class, "ID cannot be an empty string");
-            String[] properties = ((String) id).split(CONNECTOR);
+            String[] properties = ((String) id).split(SLASH);
             if(properties.length != 5) {
-                log.error("Object id passed is invalid");
+                log.error("Object ID passed is invalid");
                 return null;
             }
             String label = properties[2];
@@ -634,27 +630,27 @@ public class UsergridGraph implements Graph {
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
             }
 
-            Vertex srcVertex = getVertex(properties[0] + "/" + properties[1]);
+            Vertex srcVertex = getVertex(properties[0] + SLASH + properties[1]);
             log.debug("DEBUG getEdge(): source vertex returned with id : " + srcVertex.getId());
 
-            Vertex trgVertex = getVertex(properties[3] + "/" + properties[4]);
+            Vertex trgVertex = getVertex(properties[3] + SLASH + properties[4]);
             log.debug("DEBUG getEdge(): target vertex returned with id : " + trgVertex.getId());
 
             client.queryConnection(properties);
             Edge connection = new UsergridEdge(srcVertex.getId().toString(), trgVertex.getId().toString(), label);
-            log.debug("DEBUG addEdge(): Returning Edge with id : " + connection.getId());
+            log.debug("DEBUG addEdge(): Returning Edge with ID : " + connection.getId());
 
             return connection;
         }
 
-        log.error("Supplied id class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
+        log.error("Supplied ID class of " + String.valueOf(id.getClass()) + " is not supported by Usergrid");
         return  null;
     }
 
 
     /**
      * This function removes the connection between two entities in the graph. Takes the Connection
-     * id as an input which is specified as SourceVertexId/connection/TargetVertexId
+     * ID as an input which is specified as SourceVertexId/connection/TargetVertexId
      *
      * @param edge : edge to remove.
      */
@@ -662,7 +658,7 @@ public class UsergridGraph implements Graph {
 
     /*
     1. Get the client. Check if its intitialzed.
-    2. Get the connection(or edge) by the Id //TODO : how to retrieve an edge.
+    2. Get the connection(or edge) by the ID
     3. Check if the edge is a valid edge.
     4. call disconnectEntities(String connectingEntityType, String connectingEntityId, String connectionType, String connectedEntityId)
     */
@@ -673,11 +669,11 @@ public class UsergridGraph implements Graph {
 
         String edgeId = edge.getId().toString();
         ValidationUtils.validateStringNotEmpty(edgeId, RuntimeException.class, "Unable to obtain the Edge ID of the edge specified");
-        String[] properties = (edgeId).split(CONNECTOR);
+        String[] properties = (edgeId).split(SLASH);
         String label = properties[2];
-        UsergridVertex srcVertex = (UsergridVertex) getVertex(properties[0] + "/" + properties[1]);
-        UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[3] + "/" + properties[4]);
-        log.debug("DEBUG getvertEdge(): source vertex returned with id : " + srcVertex.getId());
+        UsergridVertex srcVertex = (UsergridVertex) getVertex(properties[0] + SLASH + properties[1]);
+        UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[3] + SLASH + properties[4]);
+        log.debug("DEBUG getvertEdge(): source vertex returned with ID : " + srcVertex.getId());
 
         ApiResponse response = client.disconnectEntities(srcVertex, trgVertex, label);
         log.debug("DEBUG removeEdge(): Response returned from API call to disconnect Vertices is : " + response);
@@ -714,7 +710,7 @@ public class UsergridGraph implements Graph {
         ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
         AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         while (responseEntities.getCursor() != null) {
-            paramsMap.put("cursor", responseEntities.getCursor());
+            paramsMap.put(STRING_CURSOR, responseEntities.getCursor());
             responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
             AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         }
@@ -756,6 +752,10 @@ public class UsergridGraph implements Graph {
     }
 
 
+    /**
+     * Helps query the graph for vertices or edges usig their properties
+     * @return returns the result of the GraphQuery
+     */
     public GraphQuery query() {
         return new DefaultGraphQuery(this);
     }
@@ -787,6 +787,11 @@ public class UsergridGraph implements Graph {
         client = null;
     }
 
+    /**
+     * This helps get the simple class name of the graph
+     *
+     * @return Returns the simple graph name
+     */
     @Override
     public String toString(){
         return getClass().getSimpleName().toLowerCase();
