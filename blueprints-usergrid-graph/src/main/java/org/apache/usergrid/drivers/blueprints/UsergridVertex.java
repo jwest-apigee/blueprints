@@ -37,9 +37,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      * This gets edges that are connected to the vertex in a
      * particular direction specified, and having a specific label
      *
-     * @param direction : direction of the edges to retrieve.
-     * @param labels : names of the edges to retrieve.
-     * @return : a list of edges.
+     * @param direction Direction of the edges to retrieve.
+     * @param labels Names of the edges to retrieve.
+     * @return Returns an Iterable of edges.
      */
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
@@ -139,8 +139,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         for (int i = 0; i < entities.size(); i++) {
             UsergridEntity e = entities.get(i);
             String vertex;
-            if(e.getStringProperty("name") != null )
-                vertex = e.getType() + SLASH + e.getStringProperty("name");
+            if(e.getStringProperty(STRING_NAME) != null )
+                vertex = e.getType() + SLASH + e.getStringProperty(STRING_NAME);
             else
                 vertex = e.getType() + SLASH + e.getUuid().toString();
             Edge e1 = null;
@@ -191,9 +191,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * This gets all the adjacent vertices connected to the vertex by an edge specified by a particular direction and label
      *
-     * @param direction : direction of the vertices to retrieve.
-     * @param labels : names of the vertices tp retrieve.
-     * @return : list of vertices.
+     * @param direction Direction of the vertices to retrieve.
+     * @param labels names of the vertices to retrieve.
+     * @return Returns and Iterable of vertices.
      */
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         /**
@@ -252,22 +252,24 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
 
     /**
-     * Generate a query object that can be
-     * used to fine tune which connections/entities are retrieved that are incident/adjacent to this entity.
+     * Not supported for Usergrid
      *
-     * @return null
+     * Generate a query object that can be
+     * used to filter which connections/entities are retrieved that are incident/adjacent to this entity.
+     *
+     * @return
      */
     public VertexQuery query() {
-        return null;
+        throw new UnsupportedOperationException("Not supported for Usergrid");
     }
 
 
     /**
      * Adds an edge to the vertex, with the target vertex specified
      *
-     * @param label : name of the edge to be added.
-     * @param inVertex : connecting edge.
-     * @return : returns the new edge formed.
+     * @param label Name of the edge to be added.
+     * @param inVertex connecting edge.
+     * @return Returns the new edge formed.
      */
     public Edge addEdge(String label, Vertex inVertex) {
 
@@ -292,8 +294,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Get a particular property of a vertex specified by a key
      *
-     * @param key :the property to retrieve for a vertex.
-     * @return : the value of the property.
+     * @param key The property to retrieve for a vertex.
+     * @return Returns the value of the property.
      */
     public <T> T getProperty(String key) {
 
@@ -317,9 +319,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     }
 
     /**
-     * Get all the property keys for a particular vertex
+     * This gets all the property keys for a particular vertex
      *
-     * @return : set of properties for the vertex.
+     * @return Returns a Set of properties for the vertex.
      */
     public Set<String> getPropertyKeys() {
 
@@ -330,15 +332,11 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     }
 
 
-    public void onChanged(Client client) {
-
-    }
-
     /**
      * This sets a particular value of a property using the specified key in the local object
      *
-     * @param key : name of the property.
-     * @param value : value of the property.
+     * @param key Name of the property.
+     * @param value Value of the property.
      */
     public void setLocalProperty(String key, Object value) {
 
@@ -363,7 +361,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     super.setProperty(key,(String) null);
     }
     else {
-    throw new IllegalArgumentException("Supplied id class of " + String.valueOf(value.getClass()) + " is not supported");
+    throw new IllegalArgumentException("Supplied ID class of " + String.valueOf(value.getClass()) + " is not supported");
     }
     }
 
@@ -424,8 +422,8 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     /**
      * Remove a particular property as specified by the key
      *
-     * @param key : name of the property to delete.
-     * @return : value of the property removed.
+     * @param key Name of the property to delete.
+     * @return Returns the value of the property removed.
      */
     public <T> T removeProperty(String key) {
         T oldValue = this.getProperty(key);
@@ -444,9 +442,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     }
 
     /**
-     * This gets the Id of the vertex
+     * This gets the ID of the vertex
      *
-     * @return : the id of the vertex.
+     * @return Returns the ID of the vertex.
      */
     public Object getId() {
         String ObjectType = this.getType();
@@ -461,6 +459,11 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
     }
 
+    /**
+     * This compares the vertex with another vertex by UUID and type
+     * @param o The object tobe compared
+     * @return Returns a Boolean whether the vertices are equal or not
+     */
         @Override
         public boolean equals(Object o) {
             if (o instanceof UsergridVertex){
@@ -486,6 +489,10 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         }
 
 
+    /**
+     * This gives the hashCode of the ID of the vertex
+     * @return Returns the hasCode of the ID of the vertex as an Integer
+     */
         @Override
         public int hashCode(){
             int hashCode = this.getId().hashCode();

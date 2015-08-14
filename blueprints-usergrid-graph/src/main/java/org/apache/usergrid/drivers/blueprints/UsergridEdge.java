@@ -20,10 +20,13 @@ public class UsergridEdge extends Connection implements Edge {
   private static final Logger log = Logger.getLogger(UsergridGraph.class);
 
 
-  public static final String CONNECTOR = "/";
-
+  public static final String SLASH = "/";
   public static final String STRING_UUID = "uuid";
   public static final String STRING_NAME = "name";
+  public static final String STRING_DELETE = "DELETE";
+  public static final String STRING_LABEL = "LABEL";
+  public static final String STRING_ID = "id";
+  public static final String STRING_CONNECTIONID = "connectionid";
 
 
   public UsergridEdge(String outV, String inV, String label) {
@@ -31,28 +34,32 @@ public class UsergridEdge extends Connection implements Edge {
     setLabel(label);
   }
 
+  /**
+   * This sets the label for an edge
+   * @param label
+   */
   public void setLabel(String label) {
     log.debug("DEBUG UsergridEdge setLabel() : Setting the label to : " + label);
     super.setLabel(label);
   }
 
   /**
-   * sets the property id for the given connection as
-   * sourecetype/source_uuid/label/targettype/target_uuid
-   *  @param sourceID
-   * @param label
-   * @param targetId
+   * Sets the property ID for the given connection as
+   * soureceVertextype/sourceVertex_uuid/label/targetVertextype/targetVertex_uuid
+   *  @param sourceId The ID of the source given by "soureceVertextype/sourceVertex_uuid"
+   * @param label the name or label of the connection
+   * @param targetId the ID of the target given by "targetVertextype/targetVertex_uuid"
    */
-  private void setId(Object sourceID, String label, Object targetId) {
+  private void setId(Object sourceId, String label, Object targetId) {
     assertClientInitialized();
-    log.debug("DEBUG UsergridEdge setId() : Setting the Connection Id to : " + label);
-    super.setConnectionID(sourceID + CONNECTOR + label + CONNECTOR + targetId);
+    log.debug("DEBUG UsergridEdge setId() : Setting the Connection ID to : " + label);
+    super.setConnectionID(sourceId + SLASH + label + SLASH + targetId);
   }
 
   /**
-   * should return the Id for the given edge. sourecetype/source_uuid/label/targettype/target_uuid
+   * This gives the ID for the given edge in the form "sourecetype/source_uuid/label/targettype/target_uuid"
    *
-   * @return : string - the id of the edge.
+   * @return Returns the String ID of the edge.
    */
   public String getId() {
     /*
@@ -66,9 +73,9 @@ public class UsergridEdge extends Connection implements Edge {
   }
 
   /**
-   * Return the label associated with the edge. in the form SourceId/Label/TargetId
+   * This gives the label associated with the edge in the form "SourceId/Label/TargetId"
    *
-   * @return - the name of the edge.
+   * @return Returns the name of the edge.
    */
   public String getLabel() {
     /*
@@ -78,7 +85,7 @@ public class UsergridEdge extends Connection implements Edge {
   }
 
   /**
-   * removes the edge
+   * This removes or deletes the edge
    */
   public void remove() {
     /*
@@ -89,30 +96,22 @@ public class UsergridEdge extends Connection implements Edge {
 
     ValidationUtils.validateNotNull(this, IllegalArgumentException.class, "The edge specified cannot be null");
     String edgeId = this.getId();
-    ValidationUtils.validateNotNull(edgeId, IllegalArgumentException.class, "The edge Id specified cannot be null");
-    String[] properties = edgeId.split(CONNECTOR);
+    ValidationUtils.validateNotNull(edgeId, IllegalArgumentException.class, "The edge ID specified cannot be null");
+    String[] properties = edgeId.split(SLASH);
     if(properties.length == 5) {
-//      UsergridVertex srcVertex = new UsergridVertex(properties[0]);
-//      srcVertex.setUuid(UUID.fromString(properties[1]));
-//      log.debug("DEBUG UsergridEdge remove() : source vertex id : " + srcVertex.getId());
-//
-//      UsergridVertex trgVertex = new UsergridVertex(properties[3]);
-//      trgVertex.setUuid(UUID.fromString(properties[4]));
-//      log.debug("DEBUG UsergridEdge remove() : target vertex id : " + trgVertex.getId());
-
       String[] urlparams = {UsergridGraph.client.getOrganizationId(),UsergridGraph.client.getApplicationId(),properties[0],properties[1],properties[2],properties[3],properties[4]};
-      UsergridGraph.client.apiRequest("DELETE",null,null,urlparams);
+      UsergridGraph.client.apiRequest(STRING_DELETE,null,null,urlparams);
     }
     else
-      log.error("the edge passed has invalid Id");
+      log.error("The edge passed has invalid Id");
   }
 
   /**
-   * Return the tail/out or head/in vertex.
+   * This gives the tail/out or head/in vertex.
    *
-   * @param direction of the edges to be retireved.
+   * @param direction of the edges to be retrieved.
    * @return the vertex
-   * @throws IllegalArgumentException : throws exception if the arguments passed are invlaid.
+   * @throws IllegalArgumentException : throws exception if the arguments passed are invalid.
    *
    */
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
@@ -131,16 +130,16 @@ public class UsergridEdge extends Connection implements Edge {
 
     String edgeId = this.getId().toString();
     String type = null;
-    String[] properties = ((String) edgeId).split(CONNECTOR);
+    String[] properties = ((String) edgeId).split(SLASH);
     ApiResponse response = null;
     if (direction == Direction.OUT) {
        response = UsergridGraph.client.getEntity(properties[0], properties[1]);
       type = properties[0];
-      log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
+      log.debug("DEBUG getVertex(): API response returned for query vertex is : " + response);
     } else if (direction == Direction.IN) {
        response = UsergridGraph.client.getEntity(properties[3], properties[4]);
       type = properties[3];
-      log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
+      log.debug("DEBUG getVertex(): API response returned for query vertex is : " + response);
     }
     else throw new IllegalArgumentException("Direction for getVertex for an edge cannot be BOTH");
 
@@ -155,59 +154,64 @@ public class UsergridEdge extends Connection implements Edge {
       v.setLocalProperty(key, value);
     }
 
-    log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty("name") + "' got are : " + v.getProperties());
+    log.debug("DEBUG getVertex(): Properties of the vertex : '" + v.getProperty(STRING_NAME) + "' got are : " + v.getProperties());
     log.debug("DEBUG getVertex(): Returning vertex with uuid : " + v.getUuid().toString());
     return v; // return target vertex
   }
 
   /**
-   * Not implementing for the usergrid blueprints.
+   * This returns the label or ID of the edge only
    *
-   * @param key the property of the edge to be retrieved.
-   * @return curently it returns null. Edges with properties is not implemented.
+   * @param key the property of the edge to be retrieved(label or ID).
+   * @return Returns the value of the property specified by the key
    */
   public <T> T getProperty(String key) {
-    if (key.toLowerCase() == "label"){
+    if (key.toLowerCase().equals(STRING_LABEL)){
       return (T)this.getLabel();
     }
-    if (key.toLowerCase() == "id"||key.toLowerCase()=="connectionid"){
+    if (key.toLowerCase().equals(STRING_ID)||key.toLowerCase().equals(STRING_CONNECTIONID)){
       return (T)this.getId();
     }
     throw new IllegalArgumentException("Property not supported");
   }
 
   /**
-   * Not implementing for the usergrid blueprints.
+   * This gives the properties label and connectionId
    *
-   * @return returns null.
+   * @return Returns the label and connectionId as a Set.
    */
   public Set<String> getPropertyKeys() {
     Set<String> propertyKeyList = new HashSet<String>();
-    propertyKeyList.add("label");
-    propertyKeyList.add("connectionId");
+    propertyKeyList.add(STRING_LABEL);
+    propertyKeyList.add(STRING_CONNECTIONID);
     return  propertyKeyList;
   }
 
   /**
-   * Not implementing for the usergrid blueprints.
+   * Not supported for usergrid
    *
-   * @param key : key of the property.
-   * @param value : value of the property.
+   * @param key key of the property.
+   * @param value value of the property.
    */
   public void setProperty(String key, Object value) {
-
+    throw new UnsupportedOperationException("Not supported for Usergrid");
   }
 
   /**
-   * Not implementing for the usergrid blueprints.
+   * Not supported for usergrid
    *
    * @param key  of the property to be removed.
    * @return returns null.
    */
   public <T> T removeProperty(String key) {
-    return null;
+    throw new UnsupportedOperationException("Not supported for Usergrid");
   }
 
+  /**
+   * This compares ID of the edge to see if the edges are equal or not
+   * @param obj Object to be compared to (edge)
+   * @return Returns a Boolean value
+   */
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof UsergridEdge){
@@ -230,9 +234,13 @@ public class UsergridEdge extends Connection implements Edge {
 
       return flag;
     }
-    throw new IllegalArgumentException("Couldn't compare class '" + obj.getClass() + "'");
+    throw new IllegalArgumentException("Couldn't compare class '" + obj.getClass() + "' with Edge");
   }
 
+  /**
+   * This returns the hashcode of the ID of the edge
+   * @return Returns an integer value of the hashcode of the ID
+   */
   @Override
   public int hashCode(){
     int hashCode = this.getId().hashCode();
@@ -241,7 +249,6 @@ public class UsergridEdge extends Connection implements Edge {
 
   protected void assertClientInitialized() {
     if (UsergridGraph.client == null) {
-      //TODO: Initialize client? OR throw exception?
       throw new IllegalArgumentException("Client is not initialized");
     }
   }
