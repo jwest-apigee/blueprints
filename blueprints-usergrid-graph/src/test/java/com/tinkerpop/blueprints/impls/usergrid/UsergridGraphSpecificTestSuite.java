@@ -1,9 +1,12 @@
 package com.tinkerpop.blueprints.impls.usergrid;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tinkerpop.blueprints.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.usergrid.drivers.blueprints.UsergridGraph;
+import org.codehaus.jettison.json.JSONObject;
+import org.junit.Test;
 
 import java.lang.reflect.Method;
 
@@ -38,10 +41,14 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
     }
 
 
-    public void testBasicUgAddVertex() {
+    public void testBasicUgAddVertex1() {
         //Case1 : Vertex with valid id
+
         Vertex vertex = graph.addVertex("person/personV1");
+        //validate the id is set correct.
         assertEquals("person/personV1", vertex.getId().toString());
+
+
 
         //Case2 : Adding vertex with default type
         vertex = graph.addVertex("personV2");
@@ -49,19 +56,46 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
 
         //Case3 : Changing the type of the vertex
         //TODO : once set type is implemented will uncomment this code.
-        vertex.setProperty("type", "person");
-        assertEquals("person/personV2", vertex.getId().toString());
+      //  vertex.setProperty("type", "person");
+        //assertEquals("person/personV2", vertex.getId().toString());
+    }
 
-        //case4 : adding a null vertex.
-        vertex = graph.addVertex(null);
+    public void testBasicUgAddVertex2() {
+      //case4 : adding a null vertex.
+        Vertex vertex = graph.addVertex(null);
         assertNotNull(vertex.getId().toString());
 
-//        vertex = graph.addVertex("");
-//        assertNotNull(vertex.getId().toString());
-
+        //case5 : adding null as a string for vertex name.
         vertex = graph.addVertex("null/null");
         assertEquals("null/null", vertex.getId().toString());
+
+        //case6 : adding a vertex with Object.
+        Object obj =  40;
+        vertex = graph.addVertex(obj);
+        assertNotNull(vertex.getId().toString());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentException(){
+        //adding float as vertex name. should throw not supported exception
+        try {
+            graph.addVertex(23.9);
+            fail();
+            JSONObject json = new JSONObject();
+            json.append("name","Mary");
+            json.append("type","person");
+            graph.addVertex(json);
+            fail();
+        }
+        catch(Exception exception){
+            System.out.println("exception : " + exception);
+        }
+
+    }
+
+    //test run time exception
+//        vertex = graph.addVertex("");
+//        assertNotNull(vertex.getId().toString());
 
     public void testBasicUgSetVertexProperties() {
         //Case1 : Vertex with valid id and property
@@ -98,21 +132,26 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
     }
 
 
-    public void testBasicUgAddEdge() {
+    public void testBasicUgAddEdge1() {
         //Case1 : Edge with valid id
         Vertex v1 = graph.addVertex("person/personE1");
         Vertex v2 = graph.addVertex("restaurants/Amici");
 
         Edge e1 = graph.addEdge(null, v1, v2, "likes");
-        assertEquals(v1.getId()+"/likes/"+v2.getId(),e1.getId().toString());
+        assertEquals(v1.getId() + "/likes/" + v2.getId(), e1.getId().toString());
 
         //Case2 : Edge with id -- should not throw errors.
         Edge e2 = graph.addEdge("id1", v1, v2, "likes");
-        assertEquals(v1.getId()+"/likes/"+v2.getId(),e2.getId().toString());
+        assertEquals(v1.getId() + "/likes/" + v2.getId(), e2.getId().toString());
 
         //case3 :Adding edge from a vertex.
-        Edge e3 = v1.addEdge("visits",v2);
-        assertEquals(v1.getId()+"/visits/"+v2.getId(),e3.getId().toString());
+        Edge e3 = v1.addEdge("visits", v2);
+        assertEquals(v1.getId() + "/visits/" + v2.getId(), e3.getId().toString());
+    }
+    public void testBasicUgAddEdge2() {
+
+        Vertex v1 = graph.addVertex("person/personE1");
+        Vertex v2 = graph.addVertex("restaurants/Amici");
 
         //case4 :adding random edge with special characters
         Edge e4 = graph.addEdge(null, v1,v2,"suggests-1?");
@@ -143,7 +182,7 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
     @Override
     protected void tearDown() throws Exception {
         System.out.println("Running: tearDown");
-        graph.shutdown();
+//        graph.shutdown();
         graph = null;
         assertNull(graph);
     }
