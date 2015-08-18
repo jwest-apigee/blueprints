@@ -356,7 +356,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     super.setProperty(key, (Boolean) value);
     } else if (value instanceof Long) {
     super.setProperty(key, (Long) value);
-    } else if (value.equals(null)){
+    } else if (value==null){
     super.setProperty(key,(String) null);
     }
     else {
