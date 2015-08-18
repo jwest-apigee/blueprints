@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  * Created by ayeshadastagiri on 7/16/15.
  */
 public class UsergridGraphSpecificTestSuite extends TestSuite {
-    private String graphProperties = "/var/lib/jenkins/workspace/usergrid-blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties";
+    private String graphProperties = "src/main/resources/usergrid.properties";
     private Graph graph;
     private String defaultType;
 
@@ -91,6 +91,18 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
             System.out.println("exception : " + exception);
         }
 
+        try {
+            Vertex v = graph.addVertex(null);
+            //setting null property
+            v.setProperty("zipcode",null);
+            fail();
+
+        }
+        catch(Exception e){
+            System.out.println("exception : " + e);
+
+        }
+
     }
 
     //test run time exception
@@ -113,9 +125,6 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
         v.setProperty("city","SanJose");
         assertEquals("SanJose", v.getProperty("city"));
 
-        //setting null property
-        v.setProperty("zipcode",null);
-        assertEquals(null, v.getProperty("zipcode"));
 
     }
 
