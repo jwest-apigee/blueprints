@@ -5,10 +5,8 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.log4j.Logger;
-import org.apache.usergrid.java.client.Usergrid;
 import org.apache.usergrid.java.client.model.Connection;
-import org.apache.usergrid.java.client.response.ApiResponse;
-import org.springframework.http.HttpMethod;
+import org.apache.usergrid.java.client.response.UsergridResponse;
 
 import java.util.*;
 
@@ -91,7 +89,7 @@ public class UsergridEdge extends Connection implements Edge {
     /*
     1. check client is initialized.
     2.check if the connection/edge is valid
-    3. delete the connection . check : disconnectEntities in client.java
+    3. delete the connection . check : disconnect in client.java
      */
 
     ValidationUtils.validateNotNull(this, IllegalArgumentException.class, "The edge specified cannot be null");
@@ -99,7 +97,7 @@ public class UsergridEdge extends Connection implements Edge {
     ValidationUtils.validateNotNull(edgeId, IllegalArgumentException.class, "The edge ID specified cannot be null");
     String[] properties = edgeId.split(SLASH);
     if(properties.length == 5) {
-      String[] urlparams = {UsergridGraph.client.getOrganizationId(),UsergridGraph.client.getApplicationId(),properties[0],properties[1],properties[2],properties[3],properties[4]};
+      String[] urlparams = {UsergridGraph.client.getOrgId(),UsergridGraph.client.getAppId(),properties[0],properties[1],properties[2],properties[3],properties[4]};
       UsergridGraph.client.apiRequest(STRING_DELETE,null,null,urlparams);
     }
     else
@@ -131,7 +129,7 @@ public class UsergridEdge extends Connection implements Edge {
     String edgeId = this.getId().toString();
     String type = null;
     String[] properties = ((String) edgeId).split(SLASH);
-    ApiResponse response = null;
+    UsergridResponse response = null;
     if (direction == Direction.OUT) {
        response = UsergridGraph.client.getEntity(properties[0], properties[1]);
       type = properties[0];

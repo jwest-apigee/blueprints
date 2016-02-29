@@ -15,7 +15,6 @@ public class AppTest {
 
         Graph usergrid = GraphFactory.open(filePath);
 
-
         Vertex v1 = usergrid.addVertex(null);
         Vertex v2 = usergrid.addVertex(null);
         Vertex v3 = usergrid.addVertex(null);
@@ -122,7 +121,7 @@ public class AppTest {
         //Removes properties
         System.out.println();
         System.out.println("Removes properties for VERTICES");
-        //Long rating = restaurant1.removeProperty("rating");
+        //Long rating = restaurant1.removeEntityProperty("rating");
         String tag = restaurant1.removeProperty("tag");
         Boolean exists = restaurant1.removeProperty("exists");
         System.out.println("Properties deleted:" + " " + tag + " " + exists);
