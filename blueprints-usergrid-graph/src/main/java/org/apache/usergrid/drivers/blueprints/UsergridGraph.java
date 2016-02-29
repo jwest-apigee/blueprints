@@ -313,7 +313,9 @@ public class UsergridGraph implements Graph {
             //Check if the string has a Slash in it to check if type is specified
             if (StringID.contains(SLASH)) {
                 try {
-                    return this.getVertex(StringID);
+                    Vertex vertex = this.getVertex(StringID);
+                    if (vertex != null)
+                        return vertex;
                 }
                 catch(NotAuthorizedException e){
                 }
@@ -398,6 +400,8 @@ public class UsergridGraph implements Graph {
                 StringUUID = id.toString();
             }
             UsergridResponse response = client.getEntity(type, StringUUID);
+            if(response.getError() != null)
+                return null;
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
             ValidateResponseErrors(response);
 
