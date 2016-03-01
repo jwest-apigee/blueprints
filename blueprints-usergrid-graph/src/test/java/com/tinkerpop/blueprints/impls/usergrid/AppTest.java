@@ -2,6 +2,9 @@ package com.tinkerpop.blueprints.impls.usergrid;
 
 import com.tinkerpop.blueprints.*;
 
+
+import java.io.*;
+
 /**
  * Created by ApigeeCorporation on 6/29/15.
  */
@@ -10,8 +13,7 @@ public class AppTest {
     static String filePath = "blueprints-usergrid-graph/src/main/resources/usergrid.properties";
     private static Iterable<Edge> Edges;
 
-    //    static String filePath = "/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties";
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
 
         Graph usergrid = GraphFactory.open(filePath);
 
@@ -175,6 +177,9 @@ public class AppTest {
                 System.out.println("in test app : " + each.getId());
             }
         }
+        
+
+
 
 
 //    System.out.println("Deleting EDGES");
