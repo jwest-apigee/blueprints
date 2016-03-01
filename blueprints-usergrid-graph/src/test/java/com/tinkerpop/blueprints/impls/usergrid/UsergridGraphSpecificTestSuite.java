@@ -56,7 +56,7 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
 
         //Case3 : Changing the type of the vertex
         //TODO : once set type is implemented will uncomment this code.
-      //  vertex.setProperty("type", "person");
+      //  vertex.putproperty("type", "person");
         //assertEquals("person/personV2", vertex.getId().toString());
     }
 
@@ -114,7 +114,7 @@ public class UsergridGraphSpecificTestSuite extends TestSuite {
         Vertex v = graph.addVertex("person/personV3");
 
             //TODO: failing , shoudl check.
-//        v.setProperty("age",20);
+//        v.putproperty("age",20);
 //        assertEquals(Integer.parseInt("20"), v.getProperty("age"));
 
         //setting multiple properties - float and string

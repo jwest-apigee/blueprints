@@ -6,7 +6,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import org.apache.usergrid.java.client.model.UsergridEntity;
-import org.apache.usergrid.java.client.response.ApiResponse;
+import org.apache.usergrid.java.client.response.UsergridResponse;
 
 import java.util.*;
 
@@ -57,7 +57,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         List<Edge> edgesSet1 = new ArrayList<Edge>();
 
 
-        ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+        UsergridResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
         UsergridGraph.ValidateResponseErrors(response);
 
         //Gets the vertex for which edges are to be found
@@ -121,7 +121,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         }
         Direction direction = null;
         for (int conLen = 0 ; conLen < connections.size();conLen++){
-            ApiResponse resp = new ApiResponse();
+            UsergridResponse resp = new UsergridResponse();
                     if (conn == CONNECTIONS) {
                         resp = UsergridGraph.client.queryConnection(srcType, srcId, connections.get(conLen));
                         direction = Direction.OUT;
@@ -167,7 +167,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
             }
         }
         for (int conLen = 0 ; conLen < connections.size();conLen++){
-            ApiResponse resp = new ApiResponse();
+            UsergridResponse resp = new UsergridResponse();
             if (conn == CONNECTIONS) {
                 resp = UsergridGraph.client.queryConnection(srcType, srcId, connections.get(conLen));
             } else {
@@ -210,7 +210,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         String srcId = this.getUuid().toString();
         List<Vertex> vertexSet = new ArrayList<Vertex>();
 
-        ApiResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
+        UsergridResponse response = UsergridGraph.client.queryEdgesForVertex(srcType, srcId);
         UsergridGraph.ValidateResponseErrors(response);
 
         //Gets the vertex for which edges are to be found
@@ -274,7 +274,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
 
     /**
     1) Check if the target vertex exists
-    2) Use the following to add an edge - connectEntities( String connectingEntityType,String
+    2) Use the following to add an edge - connect( String connectingEntityType,String
     connectingEntityId, String connectionType, String connectedEntityId) in org.apache.usergrid.java.client
     3) Return the newly created edge
     */
@@ -284,7 +284,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     ValidationUtils.validateStringNotEmpty(label, RuntimeException.class, "Label of edge cannot be emoty");
 
     UsergridEdge e = new UsergridEdge(this.getId().toString(), inVertex.getId().toString(), label);
-    ApiResponse response = UsergridGraph.client.connectEntities(this, (UsergridVertex) inVertex, label);
+    UsergridResponse response = UsergridGraph.client.connect(this, label, (UsergridVertex) inVertex);
     UsergridGraph.ValidateResponseErrors(response);
 
       return e;
@@ -345,19 +345,19 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
     ValidationUtils.validateStringNotEmpty(key, RuntimeException.class, "Key of the property cannot be empty");
 
     if (value instanceof String) {
-    super.setProperty(key, (String) value);
+    super.putproperty(key, (String) value);
     } else if (value instanceof JsonNode) {
-    super.setProperty(key, (JsonNode) value);
+    super.putproperty(key, (JsonNode) value);
     } else if (value instanceof Integer) {
-    super.setProperty(key, (Integer) value);
+    super.putproperty(key, (Integer) value);
     } else if (value instanceof Float) {
-    super.setProperty(key, (Float) value);
-    } else if (value instanceof Boolean) {
-    super.setProperty(key, (Boolean) value);
+    super.putproperty(key, (Float) value);
     } else if (value instanceof Long) {
-    super.setProperty(key, (Long) value);
-    } else if (value==null){
-    super.setProperty(key,(String) null);
+    super.putproperty(key, (Long) value);
+    } else if (value instanceof Boolean){
+        super.putproperty(key, (Boolean) value);
+    } else if (value.equals(null)){
+    super.putproperty(key,(String) null);
     }
     else {
     throw new IllegalArgumentException("Supplied ID class of " + String.valueOf(value.getClass()) + " is not supported");
@@ -376,9 +376,9 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                 Iterable allINEdges = this.getEdges(Direction.IN);
                 v.properties = allProperties;
                 v.setLocalProperty(STRING_TYPE, newType);
-                ApiResponse responseDelete = UsergridGraph.client.deleteEntity(oldType, this.getUuid().toString());
+                UsergridResponse responseDelete = UsergridGraph.client.deleteEntity(oldType, this.getUuid().toString());
 
-                ApiResponse response = UsergridGraph.client.createEntity(v);
+                UsergridResponse response = UsergridGraph.client.createEntity(v);
                 UsergridGraph.ValidateResponseErrors(response);
                 ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
@@ -391,7 +391,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                         String sourceName = parts[1];
                         String connectionType = parts[2];
                         String target = parts[3] + SLASH + parts[4];
-                        ApiResponse responseOutEdge = UsergridGraph.client.connectEntities(v.getType(), sourceName, connectionType, target);
+                        UsergridResponse responseOutEdge = UsergridGraph.client.connect(v.getType(), sourceName, connectionType, target);
                         UsergridGraph.ValidateResponseErrors(responseOutEdge);
                         ValidationUtils.validateDuplicate(responseOutEdge, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
@@ -405,7 +405,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
                         String sourceType = parts[0];
                         String sourceName = parts[1];
                         String connectionType = parts[2];
-                        ApiResponse responseInEdge = UsergridGraph.client.connectEntities(sourceType, sourceName, connectionType, v.getId().toString());
+                        UsergridResponse responseInEdge = UsergridGraph.client.connect(sourceType, sourceName, connectionType, v.getId().toString());
                         UsergridGraph.ValidateResponseErrors(responseInEdge);
                         ValidationUtils.validateDuplicate(responseInEdge, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
@@ -417,7 +417,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
         }
         else {
             setLocalProperty(key, value);
-            super.save();
+            super.POST();
         }
     }
 
@@ -429,8 +429,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      */
     public <T> T removeProperty(String key) {
         T oldValue = this.getProperty(key);
-
-        super.setProperty(key, (String) null);
+        super.putproperty(key, (String) null);
         return oldValue;
     }
 
@@ -439,7 +438,7 @@ public class UsergridVertex extends UsergridEntity implements Vertex {
      */
     public void remove() {
 
-        super.delete();
+        super.DELETE();
 
     }
 

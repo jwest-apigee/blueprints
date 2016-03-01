@@ -6,8 +6,9 @@ import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Usergrid;
+import org.apache.usergrid.java.client.UsergridClient;
 import org.apache.usergrid.java.client.model.UsergridEntity;
-import org.apache.usergrid.java.client.response.ApiResponse;
+import org.apache.usergrid.java.client.response.UsergridResponse;
 
 import java.io.IOException;
 import java.util.*;
@@ -30,7 +31,7 @@ public class UsergridGraph implements Graph {
     private static final String USERS = "users";
     private static final String ASSETS = "assets";
 
-    public static Usergrid client;
+    public static UsergridClient client;
     private static String defaultType;
     private static int entityRetrivalCount;
 
@@ -248,9 +249,9 @@ public class UsergridGraph implements Graph {
 
         try {
             if (apiUrl == null)
-                Usergrid.initialize(apiUrl, orgName, appName);
+                Usergrid.initSharedInstance(apiUrl, orgName, appName);
             else
-                Usergrid.initialize(apiUrl, orgName, appName);
+                Usergrid.initSharedInstance(apiUrl, orgName, appName);
             log.debug("UsergridGraph() : Initializing the SingletonClient");
         }
         catch (Exception e){
@@ -262,8 +263,8 @@ public class UsergridGraph implements Graph {
         ValidationUtils.validateNotNull(client, IllegalArgumentException.class, "Client could not be instantiated.");
 
         //Authorize the Application with the credentials provided in the Configuration file
-        client.authorizeAppClient(clientId, clientSecret);
-        log.debug("UsergridGraph() : Authorizing the client application. Client is initialized with the application url : " + client.getApiUrl() + client.getOrganizationId());
+        client.authenticateApp(clientId, clientSecret);
+        log.debug("UsergridGraph() : Authorizing the client application. Client is initialized with the application url : " + client.getBaseUrl() + client.getOrgId());
 
        // edges = this.getEdges();
         //vertcies = this.getVertices();
@@ -312,7 +313,9 @@ public class UsergridGraph implements Graph {
             //Check if the string has a Slash in it to check if type is specified
             if (StringID.contains(SLASH)) {
                 try {
-                    return this.getVertex(StringID);
+                    Vertex vertex = this.getVertex(StringID);
+                    if (vertex != null)
+                        return vertex;
                 }
                 catch(NotAuthorizedException e){
                 }
@@ -326,11 +329,12 @@ public class UsergridGraph implements Graph {
 
             }
             else{
-                    try {
-                        return this.getVertex(defaultType + SLASH + StringID);
-                    }
-                    catch(NotAuthorizedException e){
-                    }
+                try {
+                    Vertex vertex = this.getVertex(defaultType + SLASH + StringID);
+                    if (vertex != null)
+                        return vertex;
+                }
+                catch(NotAuthorizedException e){}
 
                 v = new UsergridVertex(defaultType);
                 VertexName = StringID;
@@ -350,16 +354,14 @@ public class UsergridGraph implements Graph {
         }
 
 
-        ApiResponse response = client.createEntity(v);
+        UsergridResponse response = client.createEntity(v);
 
         log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
         ValidateResponseErrors(response);
         ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
-        String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-        v.setUuid(UUID.fromString(uuid));
-        Vertex vFormatted = getVertex(v.getId());
-        log.debug("DEBUG addVertex(): Returning vertex with uuid : " + v.getUuid().toString());
+        Vertex vFormatted = CreateVertexFromEntity(response.getFirstEntity());
+        log.debug("DEBUG addVertex(): Returning vertex with uuid : " + vFormatted.getId().toString());
         return vFormatted;
 
     }
@@ -396,7 +398,9 @@ public class UsergridGraph implements Graph {
                 type = defaultType;
                 StringUUID = id.toString();
             }
-            ApiResponse response = client.getEntity(type, StringUUID);
+            UsergridResponse response = client.getEntity(type, StringUUID);
+            if(response.getError() != null)
+                return null;
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
             ValidateResponseErrors(response);
 
@@ -421,7 +425,7 @@ public class UsergridGraph implements Graph {
     /*
     1) Check if client is initialized
     2) Check if vertex exists
-    3) Delete all edges connected to the vertex using disconnectEntities(String connectingEntityType,
+    3) Delete all edges connected to the vertex using disconnect(String connectingEntityType,
     String connectingEntityId, String connectionType, String connectedEntityId) in org.apache.usergrid.java.client
     4) Delete the vertex //TODO: The method delete() is defined in org.apache.usergrid.java.client.entities but has not been implemented
     5) Return null if no vertex is referenced by the identifier
@@ -435,7 +439,7 @@ public class UsergridGraph implements Graph {
         String StringUUID = parts[1];
 
         try {
-            ApiResponse response = client.deleteEntity(type, StringUUID);
+            UsergridResponse response = client.deleteEntity(type, StringUUID);
         }
         catch(NotAuthorizedException e){
             throw new IllegalStateException("Vertex you are trying to delete does not exist");
@@ -443,7 +447,7 @@ public class UsergridGraph implements Graph {
 
     }
 
-    public static void ValidateResponseErrors(ApiResponse response) {
+    public static void ValidateResponseErrors(UsergridResponse response) {
         ValidationUtils.serverError(response, IOException.class, "Usergrid server error");
         ValidationUtils.validateAccess(response, RuntimeException.class, "User forbidden from using the Usergrid resource");
         ValidationUtils.validateCredentials(response, RuntimeException.class, "User credentials for Usergrid are invalid");
@@ -486,13 +490,13 @@ public class UsergridGraph implements Graph {
 
     private List<Vertex> GetVerticesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Vertex> allVertices =  new ArrayList<Vertex>();
-        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        UsergridResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrgId(), client.getAppId(), collectionName);
         ValidateResponseErrors(responseEntities);
        if (responseEntities.getEntities().size() != 0) {
             AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
             while (responseEntities.getCursor() != null) {
                 paramsMap.put(STRING_CURSOR, responseEntities.getCursor());
-                responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+                responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrgId(), client.getAppId(), collectionName);
                 ValidateResponseErrors(responseEntities);
                 AddIntoEntitiesArray(responseEntities.getEntities(), allVertices);
             }
@@ -501,7 +505,7 @@ public class UsergridGraph implements Graph {
     }
 
     private Iterator<Map.Entry<String, JsonNode>> getAllCollections() {
-        ApiResponse response = client.queryCollections();
+        UsergridResponse response = client.queryCollections();
         return response.getFirstEntity().getProperties().get(METADATA).get(COLLECTIONS).fields();
     }
 
@@ -551,8 +555,8 @@ public class UsergridGraph implements Graph {
     1. Check client initialized.
     2. Check if the two vertices are valid.
     3. Retrieve the EntityIds of the two entities
-    3. Call connectEntities( String connectingEntityType, String connectingEntityId, String connectionType, String connectedEntityId)
-    4. Return the connection(or edge) // TODO : currently returns ApiResponse. Should return an edge.
+    3. Call connect( String connectingEntityType, String connectingEntityId, String connectionType, String connectedEntityId)
+    4. Return the connection(or edge) // TODO : currently returns UsergridResponse. Should return an edge.
     */
 
         assertClientInitialized();
@@ -564,33 +568,8 @@ public class UsergridGraph implements Graph {
         UsergridEdge e = new UsergridEdge(outVertex.getId().toString(), inVertex.getId().toString(), label);
         UsergridVertex source = (UsergridVertex) outVertex;
         UsergridVertex target = (UsergridVertex) inVertex;
-        ApiResponse response = client.connectEntities(source, target, label);
+        UsergridResponse response = client.connect(source, label,target);
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
-
-        //updating the source and target vertex to reflect new properties.
-        response = client.getEntity(source.getType(), source.getUuid().toString());
-        ValidateResponseErrors(response);
-        Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
-        for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            outVertex.setProperty(key, value);
-        }
-
-        response = client.getEntity(target.getType(),target.getUuid().toString());
-        ValidateResponseErrors(response);
-        ValidationUtils.validateDuplicate(response, RuntimeException.class, "Edge of the same type already exists between the two vertices in Usergrid");
-        ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
-
-        Map<String, JsonNode> trgprops = response.getFirstEntity().getProperties();
-        for (Map.Entry<String, JsonNode> entry : trgprops.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            inVertex.setProperty(key, value);
-        }
-        log.debug("DEBUG getEdge(): target vertex with id : " + inVertex.getId() + "is updated");
-
-        log.debug("DEBUG addEdge(): Returning Edge with id : " + e.getId());
 
         return e;
 
@@ -624,7 +603,7 @@ public class UsergridGraph implements Graph {
             String label = properties[2];
 
             //Check if the edge is valid.
-            ApiResponse response = client.apiRequest(HTTP_GET, null, null, client.getOrganizationId(), client.getApplicationId(), id.toString());
+            UsergridResponse response = client.apiRequest(HTTP_GET, null, null, client.getOrgId(), client.getAppId(), id.toString());
             if (response.getError() != null) {
 //                log.error("The get requested does not exists in the database.");
                 throw new RuntimeException("The Edge requested does not exists in the database. Quitting... ");
@@ -660,7 +639,7 @@ public class UsergridGraph implements Graph {
     1. Get the client. Check if its intitialzed.
     2. Get the connection(or edge) by the ID
     3. Check if the edge is a valid edge.
-    4. call disconnectEntities(String connectingEntityType, String connectingEntityId, String connectionType, String connectedEntityId)
+    4. call disconnect(String connectingEntityType, String connectingEntityId, String connectionType, String connectedEntityId)
     */
 
         assertClientInitialized();
@@ -675,7 +654,7 @@ public class UsergridGraph implements Graph {
         UsergridVertex trgVertex = (UsergridVertex) getVertex(properties[3] + SLASH + properties[4]);
         log.debug("DEBUG getvertEdge(): source vertex returned with ID : " + srcVertex.getId());
 
-        ApiResponse response = client.disconnectEntities(srcVertex, trgVertex, label);
+        UsergridResponse response = client.disconnect(srcVertex, label, trgVertex);
         log.debug("DEBUG removeEdge(): Response returned from API call to disconnect Vertices is : " + response);
 
         ValidateResponseErrors(response);
@@ -707,11 +686,11 @@ public class UsergridGraph implements Graph {
 
     private List<Edge> GetEdgesForCollection(String collectionName, Map<String, Object> paramsMap) {
         List<Edge> allEdges =  new ArrayList<Edge>();
-        ApiResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+        UsergridResponse responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrgId(), client.getAppId(), collectionName);
         AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         while (responseEntities.getCursor() != null) {
             paramsMap.put(STRING_CURSOR, responseEntities.getCursor());
-            responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrganizationId(), client.getApplicationId(), collectionName);
+            responseEntities = client.apiRequest(HTTP_GET, paramsMap, null, client.getOrgId(), client.getAppId(), collectionName);
             AddIntoEdgesArray(responseEntities.getEntities(), allEdges);
         }
         return allEdges;

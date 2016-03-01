@@ -1,7 +1,7 @@
 package org.apache.usergrid.drivers.blueprints;
 
 import com.tinkerpop.blueprints.Vertex;
-import org.apache.usergrid.java.client.response.ApiResponse;
+import org.apache.usergrid.java.client.response.UsergridResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -81,7 +81,7 @@ public class ValidationUtils {
     }
   }
 
-  public static void validateDuplicate(ApiResponse response, Class<RuntimeException> exceptionClass, String message) {
+  public static void validateDuplicate(UsergridResponse response, Class<RuntimeException> exceptionClass, String message) {
     if (response.toString().contains(STRING_DUPLICATE_PROPERTY)) {
       try {
         Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
@@ -100,7 +100,7 @@ public class ValidationUtils {
     }
   }
 
-  public static void validateCredentials(ApiResponse response, Class<RuntimeException> exceptionClass, String message){
+  public static void validateCredentials(UsergridResponse response, Class<RuntimeException> exceptionClass, String message){
     if (response.toString().contains(INVALID_CREDENTIALS)){
       try {
         Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
@@ -118,7 +118,7 @@ public class ValidationUtils {
     }
   }
 
-  public static void OrgAppNotFound(ApiResponse response, Class<RuntimeException> exceptionClass, String message) {
+  public static void OrgAppNotFound(UsergridResponse response, Class<RuntimeException> exceptionClass, String message) {
     if (response.toString().contains(ORG_APP_NOT_FOUND)) {
 
       try {
@@ -139,7 +139,7 @@ public class ValidationUtils {
     }
   }
 
-  public static void validateAccess(ApiResponse response, Class<RuntimeException> exceptionClass, String message){
+  public static void validateAccess(UsergridResponse response, Class<RuntimeException> exceptionClass, String message){
     if (response.toString().contains(FORBIDDEN)){
       try {
         Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
@@ -157,7 +157,7 @@ public class ValidationUtils {
     }
   }
 
-    public static void validateRequest(ApiResponse response, Class<RuntimeException>exceptionClass, String message) {
+    public static void validateRequest(UsergridResponse response, Class<RuntimeException>exceptionClass, String message) {
     if (response.toString().contains(INCORRECT_CONTENT)){
         try {
             Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
@@ -175,7 +175,7 @@ public class ValidationUtils {
     }
     }
 
-    public static void validateResourceExists(ApiResponse response, Class<RuntimeException>exceptionClass, String message){
+    public static void validateResourceExists(UsergridResponse response, Class<RuntimeException>exceptionClass, String message){
         if (response.toString().contains(RESOURCE_NOT_FOUND)){
             try {
                 Constructor<RuntimeException> c = exceptionClass.getDeclaredConstructor(String.class);
@@ -194,7 +194,7 @@ public class ValidationUtils {
     }
 
 
-  public static void serverError(ApiResponse response, Class<IOException> exceptionClass, String message){
+  public static void serverError(UsergridResponse response, Class<IOException> exceptionClass, String message){
     if (response.toString().contains(SERVER_ERROR)){
       try {
         Constructor<IOException> c = exceptionClass.getDeclaredConstructor(String.class);
