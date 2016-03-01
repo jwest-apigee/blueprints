@@ -10,15 +10,15 @@ import com.tinkerpop.blueprints.Vertex;
 public class TestAppForVertex {
     public static void main(String[] args) {
 
-        Graph usergrid = GraphFactory.open("src/main/resources/usergrid.properties");
+        Graph usergrid = GraphFactory.open("blueprints-usergrid-graph/src/main/resources/usergrid.properties");
 
         //ADD VERTEX
 
         //Test for null
         Vertex nullValue = usergrid.addVertex(null); // Adds a vertex
 
-        //Test for Empty String
-        Vertex EmptyString = usergrid.addVertex("");
+        //Test for Empty String  -- > not supported by usergrid.
+//        Vertex EmptyString = usergrid.addVertex("");
 
         //Test for invalid String ID
         Vertex InvalidString = usergrid.addVertex("person");
@@ -27,11 +27,11 @@ public class TestAppForVertex {
         Vertex InvalidObject = usergrid.addVertex(123);
 
         //Test for duplicate
-        Vertex Original = usergrid.addVertex("person:Anne");
-        Vertex Duplicate = usergrid.addVertex("person:Anne");
+        Vertex Original = usergrid.addVertex("person/Anne");
+        Vertex Duplicate = usergrid.addVertex("person/Anne");
 
         //Check for invalid Org name
-        Graph incorrectOrg_Graph = GraphFactory.open("src/main/resources/usergrid_incorrectOrg.properties");
+        Graph incorrectOrg_Graph = GraphFactory.open("blueprints-usergrid-graph/src/main/resources/usergrid_incorrect.properties");
         Vertex incorrectOrg_Vertex = incorrectOrg_Graph.addVertex("person/Anne");
 
         //Check for invalid App name

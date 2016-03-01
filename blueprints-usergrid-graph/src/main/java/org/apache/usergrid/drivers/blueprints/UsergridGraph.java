@@ -329,11 +329,12 @@ public class UsergridGraph implements Graph {
 
             }
             else{
-                    try {
-                        return this.getVertex(defaultType + SLASH + StringID);
-                    }
-                    catch(NotAuthorizedException e){
-                    }
+                try {
+                    Vertex vertex = this.getVertex(defaultType + SLASH + StringID);
+                    if (vertex != null)
+                        return vertex;
+                }
+                catch(NotAuthorizedException e){}
 
                 v = new UsergridVertex(defaultType);
                 VertexName = StringID;
@@ -359,10 +360,8 @@ public class UsergridGraph implements Graph {
         ValidateResponseErrors(response);
         ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
-        String uuid = response.getFirstEntity().getStringProperty(STRING_UUID);
-        v.setUuid(UUID.fromString(uuid));
-        Vertex vFormatted = getVertex(v.getId());
-        log.debug("DEBUG addVertex(): Returning vertex with uuid : " + v.getUuid().toString());
+        Vertex vFormatted = CreateVertexFromEntity(response.getFirstEntity());
+        log.debug("DEBUG addVertex(): Returning vertex with uuid : " + vFormatted.getId().toString());
         return vFormatted;
 
     }
@@ -571,31 +570,6 @@ public class UsergridGraph implements Graph {
         UsergridVertex target = (UsergridVertex) inVertex;
         UsergridResponse response = client.connect(source, label,target);
         log.debug("DEBUG addEdge(): Api response returned after add edge is : " + response);
-
-        //updating the source and target vertex to reflect new properties.
-        response = client.getEntity(source.getType(), source.getUuid().toString());
-        ValidateResponseErrors(response);
-        Map<String, JsonNode> srcprops = response.getFirstEntity().getProperties();
-        for (Map.Entry<String, JsonNode> entry : srcprops.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            outVertex.setProperty(key, value);
-        }
-
-        response = client.getEntity(target.getType(),target.getUuid().toString());
-        ValidateResponseErrors(response);
-        ValidationUtils.validateDuplicate(response, RuntimeException.class, "Edge of the same type already exists between the two vertices in Usergrid");
-        ValidationUtils.validateResourceExists(response, RuntimeException.class, "Resource does not exist in Usergrid");
-
-        Map<String, JsonNode> trgprops = response.getFirstEntity().getProperties();
-        for (Map.Entry<String, JsonNode> entry : trgprops.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            inVertex.setProperty(key, value);
-        }
-        log.debug("DEBUG getEdge(): target vertex with id : " + inVertex.getId() + "is updated");
-
-        log.debug("DEBUG addEdge(): Returning Edge with id : " + e.getId());
 
         return e;
 

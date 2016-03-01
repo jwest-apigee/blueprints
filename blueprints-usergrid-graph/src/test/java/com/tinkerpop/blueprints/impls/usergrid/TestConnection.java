@@ -10,15 +10,15 @@ public class TestConnection {
     public static void main(String[] args) {
 
 
-        Graph usergrid = GraphFactory.open("/Users/ayeshadastagiri/usergrid-blueprints/src/main/resources/usergrid.properties");
+        Graph usergrid = GraphFactory.open("/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
 
-        Vertex v1 = usergrid.addVertex("person:ayesha");
+        Vertex v1 = usergrid.addVertex("person/ayesha");
         System.out.println("id v1 :: " + usergrid.getVertex(v1.getId()));
 
-        Vertex v2 = usergrid.addVertex("restaurant:amici");
+        Vertex v2 = usergrid.addVertex("restaurant/amici");
         System.out.println("id v2 :: " +usergrid.getVertex(v2.getId()));
 
-        Vertex v3 = usergrid.addVertex("restaurant:CPK");
+        Vertex v3 = usergrid.addVertex("restaurant/CPK");
         System.out.println("id v3 :: " +usergrid.getVertex(v3.getId()));
 
 
@@ -28,7 +28,7 @@ public class TestConnection {
 
        //v1.getEdges(Direction.OUT);
 
-        String edgeId = v1.getId()+"-->visits-->"+v2.getId();
+        String edgeId = v1.getId()+"/visits/"+v2.getId();
         Edge e3 = usergrid.getEdge(edgeId);
         System.out.println("label : " + e3.getLabel());
 
