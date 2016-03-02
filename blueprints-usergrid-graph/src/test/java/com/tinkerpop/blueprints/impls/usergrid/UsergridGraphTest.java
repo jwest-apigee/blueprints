@@ -16,7 +16,7 @@ public class UsergridGraphTest extends GraphTest {
     @Override
     public Graph generateGraph() {
 
-        return generateGraph("/var/lib/jenkins/workspace/usergrid-blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
+        return generateGraph("/Users/ayeshadastagiri/blueprints/blueprints-usergrid-graph/src/main/resources/usergrid.properties");
 
     }
 
@@ -63,7 +63,8 @@ public class UsergridGraphTest extends GraphTest {
                     method.invoke(testSuite);
                 }
                 catch (InvocationTargetException e ){
-                    System.out.println("InvocationTargetException exception : "+ e);
+                    System.out.println("InvocationTargetException exception : "+ e.getTargetException());
+
                 }
                 catch (Exception e)
                 {

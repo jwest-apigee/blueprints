@@ -8,6 +8,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.usergrid.java.client.Usergrid;
 import org.apache.usergrid.java.client.UsergridClient;
 import org.apache.usergrid.java.client.model.UsergridEntity;
+import org.apache.usergrid.java.client.query.LegacyQueryResult;
+import org.apache.usergrid.java.client.query.UsergridQuery;
 import org.apache.usergrid.java.client.response.UsergridResponse;
 
 import java.io.IOException;
@@ -30,6 +32,9 @@ public class UsergridGraph implements Graph {
     private static final String ACTIVITIES = "activities";
     private static final String USERS = "users";
     private static final String ASSETS = "assets";
+    private static final String NULLS = "nulls";
+    private static final String FOLDERS = "folders";
+
 
     public static UsergridClient client;
     private static String defaultType;
@@ -241,6 +246,8 @@ public class UsergridGraph implements Graph {
         ignoreList.add(ACTIVITIES);
         ignoreList.add(USERS);
         ignoreList.add(ASSETS);
+        ignoreList.add(NULLS);
+        ignoreList.add(FOLDERS);
 
         ValidationUtils.validateNotNull(orgName, IllegalArgumentException.class, "Organization name in Usergrid cannot be null");
         ValidationUtils.validateNotNull(appName, IllegalArgumentException.class, "Application name in Usergrid cannot be null");
@@ -355,12 +362,17 @@ public class UsergridGraph implements Graph {
 
 
         UsergridResponse response = client.createEntity(v);
+        UsergridEntity cVertex = response.first();
+        if (cVertex.getName() == null){
+            cVertex.putproperty("name",cVertex.getUuidString());
+            cVertex.save();
+        }
 
         log.debug("DEBUG addVertex(): Api response returned for adding vertex is : " + response);
         ValidateResponseErrors(response);
         ValidationUtils.validateDuplicate(response, RuntimeException.class, "Entity with the name specified already exists in Usergrid");
 
-        Vertex vFormatted = CreateVertexFromEntity(response.getFirstEntity());
+        Vertex vFormatted = CreateVertexFromEntity(cVertex);
         log.debug("DEBUG addVertex(): Returning vertex with uuid : " + vFormatted.getId().toString());
         return vFormatted;
 
@@ -390,21 +402,29 @@ public class UsergridGraph implements Graph {
             ValidationUtils.validateStringNotEmpty((String) id, RuntimeException.class, "ID cannot be an empty string");
             String type;
             String StringUUID;
+            String qString;
             if (((String) id).contains(SLASH)) {
                 String[] parts = id.toString().split(SLASH);
                 type = parts[0];
                 StringUUID = parts[1];
+
+
             } else{
                 type = defaultType;
                 StringUUID = id.toString();
+
             }
-            UsergridResponse response = client.getEntity(type, StringUUID);
-            if(response.getError() != null)
+
+            qString = "select * where name = " + StringUUID + " or uuid = " + StringUUID;
+            HashMap<String,Object> param = new HashMap<String, Object>();
+            param.put("ql",qString);
+            UsergridResponse response = client.apiRequest("GET",param,null,client.getOrgId(),client.getAppId(),type);
+            if(response.first() == null)
                 return null;
             log.debug("DEBUG getVertex(): Api response returned for query vertex is : " + response);
-            ValidateResponseErrors(response);
+//            ValidateResponseErrors(response.first());
 
-            UsergridVertex ugvertex = CreateVertexFromEntity(response.getFirstEntity());
+            UsergridVertex ugvertex = CreateVertexFromEntity(response.first());
 
             log.debug("DEBUG getVertex(): Properties of the vertex : '" + ugvertex.getProperty(STRING_NAME) + "' got are : " + ugvertex.getProperties());
             log.debug("DEBUG getVertex(): Returning vertex with uuid : " + ugvertex.getUuid().toString());
@@ -515,9 +535,7 @@ public class UsergridGraph implements Graph {
             return new ArrayList<Vertex>();
         }
         while (entities.size() > next) {
-            String type = entities.get(next).getType();
-            String StringUUID = entities.get(next).getUuid().toString();
-            Vertex ugvertex = getVertex(type + SLASH + StringUUID);
+            Vertex ugvertex = CreateVertexFromEntity(entities.get(next));
             allVertices.add(ugvertex);
             next++;
         }
